@@ -20,16 +20,8 @@ redis
 requests
 
 Pillow
-boto3
 PyJWT
-cryptography
-
-celery
-flower
-django-celery-beat
-django-celery-results
 
 drf-yasg
 Pygments
-pandas
 django-markdownx
