@@ -28,3 +28,4 @@ django-markdownx
 
 cryptography
 scikit-learn
+pandas
