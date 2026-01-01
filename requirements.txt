@@ -27,3 +27,4 @@ Pygments
 django-markdownx
 
 cryptography
+scikit-learn
