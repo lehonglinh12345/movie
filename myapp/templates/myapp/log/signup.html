@@ -1,0 +1,32 @@
+{% extends "myapp/layout/base.html" %}
+{% load static %}
+{% block content %}
+<div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div class="card shadow-lg border-0" style="max-width: 460px; width: 100%; border-radius: 20px;">
+        <div class="card-header bg-gradient-primary text-white text-center py-4">
+            <h2 class="mb-0 fw-bold">Đăng Ký</h2>
+        </div>
+        <div class="card-body p-4">
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <form method="POST" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success w-100 fw-semibold mt-2">Đăng ký</button>
+            </form>
+            <div class="text-center mt-3">
+                <small>Đã có tài khoản? 
+                    <a href="{% url 'login' %}" class="text-decoration-none text-primary fw-semibold">Đăng nhập</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

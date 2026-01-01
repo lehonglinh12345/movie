@@ -1,0 +1,1435 @@
+{% extends "myapp/layout/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-color: #facc15;
+    --secondary-color: #1a1a2e;
+    --accent-color: #e11d48;
+    --text-color: #e5e7eb;
+    --shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    --border-radius: 12px;
+    --transition: 0.3s ease;
+    --overlay-opacity: 0.7;
+    --rating-color: #facc15;
+    --bg-gradient: linear-gradient(135deg, var(--secondary-color), #2a2a4e);
+    --star-glow: 0 0 8px rgba(250, 204, 21, 0.5);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg-gradient);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .movie-card {
+    background: #18181b;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform var(--transition), box-shadow var(--transition);
+    border: 1px solid var(--primary-color);
+  }
+
+  .movie-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 24px rgba(250, 204, 21, 0.2);
+  }
+
+  .video-section {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .movie-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    transition: opacity var(--transition), transform var(--transition);
+  }
+
+  .movie-poster.hidden {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  .video-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+  }
+
+  .video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, var(--overlay-opacity));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity var(--transition);
+    z-index: 3;
+  }
+
+  .video-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .play-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform var(--transition), background var(--transition);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .play-icon:hover {
+    background: #eab308;
+    transform: scale(1.1);
+  }
+
+  .play-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--secondary-color);
+  }
+
+  .loading-spinner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 4;
+  }
+
+  .loading-spinner.active {
+    display: block;
+  }
+
+  .movie-info {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .movie-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+
+  .movie-title::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 4px;
+    background: var(--accent-color);
+    transition: width var(--transition);
+  }
+
+  .movie-title:hover::after {
+    width: 100%;
+  }
+
+  .movie-meta {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 1rem;
+    color: #d1d5db;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .movie-meta .rating {
+    color: var(--rating-color);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .play-button, .favorite-button, .share-button, .back-button, .comment-button {
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--transition);
+  }
+
+  .play-button {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+  }
+
+  .play-button:hover {
+    background: #eab308;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .favorite-button {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  .favorite-button:hover, .favorite-button.active {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+  }
+
+  .share-button {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  .share-button:hover {
+    background: var(--accent-color);
+    color: var(--text-color);
+  }
+
+  .back-button {
+    background: var(--accent-color);
+    color: var(--text-color);
+  }
+
+  .back-button:hover {
+    background: #c8102e;
+    transform: translateY(-2px);
+  }
+
+  .description-section {
+    margin-top: 2.5rem;
+  }
+
+  .description-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    position: relative;
+    display: inline-block;
+  }
+
+  .description-title::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 60%;
+    height: 3px;
+    background: var(--accent-color);
+  }
+
+  .description-preview {
+    max-height: 5rem;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.5s ease;
+  }
+
+  .description-preview.expanded {
+    max-height: 1000px;
+  }
+
+  .description-preview::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, transparent, var(--secondary-color));
+    display: block;
+  }
+
+  .description-preview.expanded::after {
+    display: none;
+  }
+
+  .description-text {
+    color: #d1d5db;
+    line-height: 1.8;
+    font-size: 1rem;
+  }
+
+  .read-more-button {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .read-more-button:hover {
+    color: #eab308;
+  }
+
+  .metadata-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0;
+    font-size: 1rem;
+    color: #d1d5db;
+  }
+
+  .metadata-list li {
+    display: flex;
+    gap: 0.75rem;
+    line-height: 1.8;
+  }
+
+  .metadata-label {
+    color: var(--text-color);
+    font-weight: 600;
+    min-width: 100px;
+  }
+
+  .comment-section {
+    margin-top: 3rem;
+    background: #1f2937;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+  }
+
+  .comment-form textarea {
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    color: var(--text-color);
+    border-radius: 8px;
+    padding: 1rem;
+    width: 100%;
+    font-size: 1rem;
+    resize: vertical;
+    max-height: 200px;
+  }
+
+  .comment-form textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+  }
+
+  .comment-button {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+  }
+
+  .comment-button:hover {
+    background: #eab308;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .review-card {
+    background: #27272a;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #3f3f46;
+    transition: transform var(--transition);
+  }
+
+  .review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .review-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+  }
+
+  .star-rating {
+    display: flex;
+    gap: 0.25rem;
+    font-size: 1.2rem;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+
+  .star-rating input {
+    display: none;
+  }
+
+  .star-rating label {
+    color: #4b5563;
+    cursor: pointer;
+    transition: color var(--transition), transform 0.2s ease, text-shadow 0.2s ease;
+  }
+
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: var(--rating-color);
+    transform: scale(1.15);
+    text-shadow: var(--star-glow);
+  }
+
+  .star-rating input:focus + label {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  .review-stars {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 1.2rem;
+  }
+
+  .review-stars .star {
+    transition: color var(--transition);
+  }
+
+  .review-text {
+    max-height: 5rem;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.5s ease;
+  }
+
+  .review-text.expanded {
+    max-height: 1000px;
+  }
+
+  .review-text::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, transparent, #27272a);
+    display: none;
+  }
+
+  .review-text.expanded::after {
+    display: none;
+  }
+
+  .read-more-review {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+
+  .read-more-review:hover {
+    color: #eab308;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 1rem; }
+    .video-section { aspect-ratio: 4 / 3; }
+    .play-icon { width: 60px; height: 60px; }
+    .play-icon svg { width: 28px; height: 28px; }
+    .movie-title { font-size: 1.5rem; }
+    .movie-meta { font-size: 0.9rem; gap: 1rem; }
+    .description-title { font-size: 1.25rem; }
+    .movie-info { padding: 1.5rem; }
+    .comment-section { padding: 1.5rem; }
+    .metadata-label { min-width: 80px; }
+    .button-group { gap: 0.75rem; }
+    .play-button, .favorite-button, .share-button, .back-button, .comment-button { padding: 0.5rem 1.5rem; font-size: 0.9rem; }
+    .star-rating, .review-stars { font-size: 1rem; }
+  }
+
+  @media (min-width: 768px) {
+    .video-section { height: 400px; }
+    .movie-section { order: 0; }
+  }
+
+  @media (min-width: 1024px) {
+    .container { padding: 0 2rem; }
+    .video-section { height: 500px; }
+    .movie-title { font-size: 2.25rem; }
+    .description-title { font-size: 1.75rem; }
+  }
+/* Khung video thu nhỏ */
+.mini-player {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  height: 180px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  background: black;
+  transition: all 0.3s ease;
+}
+
+.mini-player.hidden {
+  display: none;
+}
+
+.close-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255,0,0,0.8);
+}
+#miniPlayer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  cursor: grab;
+  /* các style hiện tại */
+  /* ... */
+}
+#miniPlayer.dragging {
+  cursor: grabbing;
+  opacity: 0.9;
+}
+
+.mini-player {
+  width: 300px;
+  height: 170px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.7);
+  position: fixed;
+  z-index: 1000;
+  user-select: none;
+}
+
+.drag-handle {
+  width: 100%;
+  height: 12px;             /* nhỏ lại */
+  background: rgba(255, 255, 255, 0.15);
+  cursor: grab;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  user-select: none;
+  transition: background-color 0.2s ease; /* hiệu ứng mượt khi hover */
+  will-change: background-color, cursor; /* ưu tiên hiệu năng */
+}
+
+.drag-handle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.drag-handle:active,
+.drag-handle.dragging {
+  cursor: grabbing;
+  background: rgba(255, 255, 255, 0.5);
+  transition: none; /* khi kéo thì bỏ transition cho phản hồi tức thì */
+}
+
+.drag-handle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;             /* nhỏ hơn */
+  height: 2px;             /* mảnh hơn */
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 6px 0 rgba(255, 255, 255, 0.5),
+    0 -6px 0 rgba(255, 255, 255, 0.5);
+  will-change: transform; /* ưu tiên hiệu năng */
+}
+
+
+
+</style>
+
+<div class="py-10 min-h-screen">
+  <div class="container">
+    <div id="offlineWarning" class="hidden fixed top-0 left-0 right-0 bg-yellow-500 text-black text-center py-3 z-50 text-sm font-medium" role="alert">
+      Bạn đang ngoại tuyến. Một số nội dung có thể không khả dụng.
+    </div>
+
+    <div class="mb-8">
+      <a href="{% url 'home' %}" class="back-button" aria-label="Quay lại trang chủ">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Quay lại
+      </a>
+    </div>
+
+   <div class="movie-section">
+  <div class="movie-card fade-in">
+    <div class="video-section">
+      <img id="moviePoster" 
+           src="{{ movie.anh_bia_url|default:'/static/myapp/img/default_poster.webp' }}"
+           alt="{{ movie.ten_phim|default:'Phim không có tiêu đề' }}" 
+           class="movie-poster lazy" 
+           data-src="{{ movie.anh_bia_url }}" 
+           loading="lazy">
+
+      <div id="videoContainer" class="video-container hidden">
+        <div class="loading-spinner" id="videoSpinner"></div>
+        <iframe id="mainVideo" src="" frameborder="0" allowfullscreen loading="lazy"></iframe>
+      </div>
+
+      <div class="video-overlay" id="videoOverlay">
+        <div class="play-icon" id="playIcon">
+          <svg viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mini player đặt ngoài để cố định góc màn hình -->
+<div id="miniPlayer" class="mini-player hidden" style="position: fixed; bottom: 20px; right: 20px;">
+  <div id="dragHandle" class="drag-handle" aria-label="Kéo mini player"></div>
+  <button id="closeMiniPlayer" class="close-btn" aria-label="Đóng video thu nhỏ">✕</button>
+  <iframe id="miniVideo" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+
+
+
+
+        <div class="movie-info">
+          <h3 class="movie-title">{{ movie.ten_phim|default:'Không có tiêu đề' }}</h3>
+          <div class="movie-meta">
+            <span>⏱ {{ movie.thoi_luong|default:0 }} phút</span>
+            <span>📅 {{ movie.ngay_phat_hanh|date:"Y"|default:'N/A' }}</span>
+            <span class="rating" id="movieRating">
+              {% if movie.avg_score %}
+                <span class="review-stars" data-score="{{ movie.avg_score|floatformat:0 }}"></span>
+                <span class="ml-1">{{ movie.avg_score|floatformat:1 }}/5</span>
+              {% else %}
+                Chưa có đánh giá
+              {% endif %}
+            </span>
+            <span>🎭 {% for tl in movie.the_loai.all %}{{ tl.ten }}{% if not forloop.last %}, {% endif %}{% empty %}Không xác định{% endfor %}</span>
+          </div>
+          <div class="button-group">
+            {% if movie.trailer_url %}
+              <button onclick="playTrailer()" class="play-button" aria-label="Xem trailer">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Xem trailer
+              </button>
+            {% endif %}
+            {% if phim_duoc_xem and movie.video_url %}
+              <button onclick="playMovie()" class="play-button" aria-label="Xem phim ngay">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Xem phim ngay
+              </button>
+            {% endif %}
+            <button id="favoriteButton" class="favorite-button {% if movie in user.favorites.all %}active{% endif %}" data-movie-id="{{ movie.id }}" aria-label="Thêm vào yêu thích">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>{% if movie in user.favorites.all %}Đã yêu thích{% else %}Yêu thích{% endif %}</span>
+            </button>
+            <button class="share-button" onclick="shareMovie()" aria-label="Chia sẻ phim">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.39 12.637 10.763 12 12 12c1.237 0 2.61.637 3.316 1.342M12 9v3m0 0v3m0 0h-3m3 0h3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Chia sẻ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="description-section fade-in">
+        <h4 class="description-title">📖 Mô tả</h4>
+        <div class="description-preview" id="descriptionPreview">
+          <p class="description-text mt-4">{{ movie.mo_ta|default:'Không có mô tả.' }}</p>
+        </div>
+        <button class="read-more-button hidden" id="readMoreButton" aria-label="Đọc thêm hoặc thu gọn mô tả">
+          <span id="buttonText">Đọc thêm</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <ul class="metadata-list mt-4">
+          <li><span class="metadata-label">Ngày phát hành:</span> {{ movie.ngay_phat_hanh|date:"d/m/Y"|default:'Chưa xác định' }}</li>
+          <li><span class="metadata-label">Thể loại:</span> {% for tl in movie.the_loai.all %}{{ tl.ten }}{% if not forloop.last %}, {% endif %}{% empty %}Không xác định{% endfor %}</li>
+          <li><span class="metadata-label">Đạo diễn:</span> {{ movie.dao_dien|default:'Không xác định' }}</li>
+          <li><span class="metadata-label">Diễn viên:</span> {% for dv in movie.dien_vien.all %}{{ dv.ten }}{% if not forloop.last %}, {% endif %}{% empty %}Không xác định{% endfor %}</li>
+        </ul>
+      </div>
+
+      <div class="sidebar fade-in">
+        {% include 'myapp/pages/recommended.html' %}
+      </div>
+
+      <div class="comment-section fade-in">
+        <h5 class="text-xl font-bold mb-6">🗣️ Bình luận</h5>
+        <form method="POST" action="{% url 'movie_review' movie.id %}" class="space-y-6 comment-form">
+          {% csrf_token %}
+          <div>
+            <label for="diem" class="block mb-2 text-sm font-medium">Đánh giá của bạn</label>
+            <div class="star-rating" id="starRating" role="radiogroup" aria-label="Đánh giá sao"></div>
+          </div>
+          <div>
+            <label for="binh_luan" class="block mb-2 text-sm font-medium">Bình luận của bạn</label>
+            <textarea id="binh_luan" name="binh_luan" rows="5" class="w-full" required aria-label="Viết bình luận"></textarea>
+            <p class="text-xs text-gray-400 mt-2" id="charCount">0/500 ký tự</p>
+          </div>
+          <button type="submit" class="comment-button" aria-label="Đăng bình luận">Đăng bình luận</button>
+        </form>
+
+<div class="mt-8 space-y-6">
+  {% for review in movie.reviews.all %}
+    <div class="review-card fade-in" id="review-card-{{ review.id }}">
+      <div class="flex items-start space-x-4">
+        <img src="{% if review.user.avatar %}{{ review.user.avatar.url }}{% else %}{% static 'myapp/img/logo.jpg' %}{% endif %}"
+             alt="Avatar của {{ review.user.email }}" class="review-avatar">
+        <div class="flex-1">
+<p class="text-sm font-semibold max-w-[160px] md:max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap">
+  {% if review.user == request.user %}
+    Bạn
+  {% else %}
+    <span title="{{ review.user.email }}">{{ review.user.email }}</span>
+  {% endif %}
+</p>
+
+
+<span class="text-xs text-gray-400 ml-2 review-time" data-time="{{ review.ngay_danh_gia|date:'c' }}">(Đang tải...)</span>
+
+            {% if review.user == request.user %}
+              <span class="ml-2">
+<button class="edit-review-button" data-review-id="{{ review.id }}">Sửa</button>
+<button
+  class="delete-review-button inline-flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors font-semibold text-xs rounded px-2 py-0.5 border border-transparent hover:border-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+  data-review-id="{{ review.id }}"
+  aria-label="Xóa bình luận"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 stroke-current transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  Xóa
+</button>
+
+
+              </span>
+            {% endif %}
+          </p>
+<div class="flex items-center">
+  <p class="review-stars" data-score="{{ review.diem }}"></p>
+  <span class="text-yellow-400 font-bold ml-2 text-xs">{{ review.diem }}/5</span>
+</div>
+
+        <p class="text-gray-300 text-sm mt-2 review-text" id="review-{{ review.id }}">{{ review.binh_luan }}</p>
+
+<form id="edit-form-{{ review.id }}" class="hidden mt-3 bg-gray-800 p-4 rounded-lg shadow-md text-white">
+  <!-- Điểm đánh giá (số sao) -->
+  <label for="diem-{{ review.id }}" class="block mb-2 text-sm font-medium text-yellow-400">
+    Đánh giá (1 - 5 sao):
+  </label>
+  <input
+    type="number"
+    id="diem-{{ review.id }}"
+    name="diem"
+    min="1"
+    max="5"
+    value="{{ review.diem }}"
+    class="diem-input w-full md:w-24 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-3"
+  />
+
+  <!-- Bình luận -->
+  <label for="textarea-{{ review.id }}" class="block mb-2 text-sm font-medium text-yellow-400">
+    Bình luận của bạn:
+  </label>
+  <textarea
+    id="textarea-{{ review.id }}"
+    class="edit-textarea w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+    rows="4"
+  >{{ review.binh_luan }}</textarea>
+
+  <!-- Nút hành động -->
+  <div class="mt-4 flex flex-col sm:flex-row justify-start items-stretch gap-3">
+    <button
+      type="button"
+      class="update-review-button bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded font-semibold text-sm transition"
+      data-review-id="{{ review.id }}"
+    >
+      💾 Lưu
+    </button>
+    <button
+      type="button"
+      class="cancel-edit-button text-gray-400 hover:text-white underline text-sm px-4 py-2"
+      data-review-id="{{ review.id }}"
+    >
+      ❌ Hủy
+    </button>
+  </div>
+</form>
+
+
+          <button class="read-more-review hidden" data-review-id="{{ review.id }}" aria-label="Đọc thêm hoặc thu gọn bình luận">Đọc thêm</button>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-400 text-sm">Chưa có bình luận nào.</p>
+  {% endfor %}
+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const videoContainer = document.getElementById('videoContainer');
+  const mainVideo = document.getElementById('mainVideo');
+  const miniPlayer = document.getElementById('miniPlayer');
+  const miniVideo = document.getElementById('miniVideo');
+  const closeBtn = document.getElementById('closeMiniPlayer');
+  const playIcon = document.getElementById('playIcon');
+  const moviePoster = document.getElementById('moviePoster');
+  const videoOverlay = document.getElementById('videoOverlay');
+  const dragHandle = document.getElementById('dragHandle');
+
+  let miniPlayerClosedByUser = false;
+
+  function isInViewport(element) {
+    const rect = element.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  }
+
+  function handleScroll() {
+    if (miniPlayerClosedByUser) return;
+
+    if (!videoContainer.classList.contains('hidden') && mainVideo.src) {
+      if (!isInViewport(videoContainer)) {
+        if (miniPlayer.classList.contains('hidden')) {
+          miniVideo.src = mainVideo.src;
+          miniPlayer.classList.remove('hidden');
+        }
+      } else {
+        if (!miniPlayer.classList.contains('hidden')) {
+          miniPlayer.classList.add('hidden');
+          miniVideo.src = '';
+        }
+      }
+    } else {
+      if (!miniPlayer.classList.contains('hidden')) {
+        miniPlayer.classList.add('hidden');
+        miniVideo.src = '';
+      }
+    }
+  }
+
+  function resetMiniPlayerClosedFlag() {
+    miniPlayerClosedByUser = false;
+  }
+
+  function openVideo(url) {
+    resetMiniPlayerClosedFlag();
+    videoContainer.classList.remove('hidden');
+    mainVideo.src = url;
+    if (moviePoster) moviePoster.classList.add('hidden');
+    if (videoOverlay) videoOverlay.classList.add('hidden');
+    handleScroll();
+  }
+
+  // Bấm nút play ở khung
+  playIcon.addEventListener('click', () => {
+    {% if movie.trailer_url %}
+      openVideo(`https://www.youtube.com/embed/{{ movie.trailer_url|slice:'17:' }}?autoplay=1`);
+    {% elif phim_duoc_xem and movie.video_url %}
+      openVideo(`https://www.youtube.com/embed/{{ movie.video_url|slice:'17:' }}?autoplay=1`);
+    {% else %}
+      alert('Không có video để phát.');
+    {% endif %}
+  });
+
+  // Hàm play movie/trailer dùng cho nút khác
+  window.playMovie = () => openVideo(`https://www.youtube.com/embed/{{ movie.video_url|slice:'17:' }}?autoplay=1`);
+  window.playTrailer = () => openVideo(`https://www.youtube.com/embed/{{ movie.trailer_url|slice:'17:' }}?autoplay=1`);
+
+  mainVideo.addEventListener('play', () => {
+    resetMiniPlayerClosedFlag();
+    handleScroll();
+  });
+
+  mainVideo.addEventListener('click', () => {
+    resetMiniPlayerClosedFlag();
+  });
+
+  mainVideo.addEventListener('pause', () => {
+    miniPlayer.classList.add('hidden');
+    miniVideo.src = '';
+  });
+
+  closeBtn.addEventListener('click', () => {
+    miniPlayer.classList.add('hidden');
+    miniVideo.src = '';
+    miniPlayerClosedByUser = true;
+  });
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+
+  // --- Xử lý kéo thả miniPlayer chỉ trên dragHandle ---
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  // Kéo chuột
+  dragHandle.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragOffsetX = e.clientX - miniPlayer.getBoundingClientRect().left;
+    dragOffsetY = e.clientY - miniPlayer.getBoundingClientRect().top;
+    miniPlayer.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    let newLeft = e.clientX - dragOffsetX;
+    let newTop = e.clientY - dragOffsetY;
+
+    const vpWidth = window.innerWidth;
+    const vpHeight = window.innerHeight;
+    const miniRect = miniPlayer.getBoundingClientRect();
+
+    if (newLeft < 0) newLeft = 0;
+    if (newTop < 0) newTop = 0;
+    if (newLeft + miniRect.width > vpWidth) newLeft = vpWidth - miniRect.width;
+    if (newTop + miniRect.height > vpHeight) newTop = vpHeight - miniRect.height;
+
+    miniPlayer.style.left = newLeft + 'px';
+    miniPlayer.style.top = newTop + 'px';
+    miniPlayer.style.bottom = 'auto';
+    miniPlayer.style.right = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      miniPlayer.classList.remove('dragging');
+    }
+  });
+
+  // Kéo cảm ứng (touch)
+  dragHandle.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      const touch = e.touches[0];
+      dragOffsetX = touch.clientX - miniPlayer.getBoundingClientRect().left;
+      dragOffsetY = touch.clientY - miniPlayer.getBoundingClientRect().top;
+      miniPlayer.classList.add('dragging');
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+
+    let newLeft = touch.clientX - dragOffsetX;
+    let newTop = touch.clientY - dragOffsetY;
+
+    const vpWidth = window.innerWidth;
+    const vpHeight = window.innerHeight;
+    const miniRect = miniPlayer.getBoundingClientRect();
+
+    if (newLeft < 0) newLeft = 0;
+    if (newTop < 0) newTop = 0;
+    if (newLeft + miniRect.width > vpWidth) newLeft = vpWidth - miniRect.width;
+    if (newTop + miniRect.height > vpHeight) newTop = vpHeight - miniRect.height;
+
+    miniPlayer.style.left = newLeft + 'px';
+    miniPlayer.style.top = newTop + 'px';
+    miniPlayer.style.bottom = 'auto';
+    miniPlayer.style.right = 'auto';
+
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (isDragging) {
+      isDragging = false;
+      miniPlayer.classList.remove('dragging');
+    }
+  });
+});
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  // 1. Hiển thị form sửa khi bấm nút Sửa
+  document.querySelectorAll('.edit-review-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const reviewId = button.dataset.reviewId;
+      const text = document.getElementById(`review-${reviewId}`);
+      const form = document.getElementById(`edit-form-${reviewId}`);
+
+      text.classList.add('hidden');
+      form.classList.remove('hidden');
+    });
+  });
+
+  // 2. Hủy sửa
+  document.querySelectorAll('.cancel-edit-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const reviewId = button.dataset.reviewId;
+      const text = document.getElementById(`review-${reviewId}`);
+      const form = document.getElementById(`edit-form-${reviewId}`);
+
+      form.classList.add('hidden');
+      text.classList.remove('hidden');
+    });
+  });
+
+  // 3. Gửi cập nhật bình luận qua fetch POST
+  document.querySelectorAll('.update-review-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const reviewId = button.dataset.reviewId;
+      const form = document.getElementById(`edit-form-${reviewId}`);
+      const textarea = form.querySelector('textarea');
+
+const diemInput = form.querySelector('.diem-input');  // ← lấy input điểm
+fetch("{% url 'edit_review' %}", {
+  method: "POST",
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRFToken': getCookie('csrftoken'),
+  },
+  body: JSON.stringify({
+    review_id: reviewId,
+    binh_luan: textarea.value,
+    diem: diemInput ? parseInt(diemInput.value) : null  // ← lấy số sao hiện tại
+  })
+})
+
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById(`review-${reviewId}`).textContent = data.binh_luan;
+          form.classList.add('hidden');
+          document.getElementById(`review-${reviewId}`).classList.remove('hidden');
+        } else {
+          alert(data.error || 'Có lỗi xảy ra.');
+        }
+      });
+    });
+  });
+
+  // Hàm lấy CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+
+
+
+  function formatRelativeTime(date) {
+    const now = new Date();
+    const then = new Date(date);
+    const diff = (now - then) / 1000;
+
+    if (diff < 60) return `${Math.floor(diff)} giây trước`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)} ngày trước`;
+
+    const months = ['Thg 1', 'Thg 2', 'Thg 3', 'Thg 4', 'Thg 5', 'Thg 6', 'Thg 7', 'Thg 8', 'Thg 9', 'Thg 10', 'Thg 11', 'Thg 12'];
+    return `${months[then.getMonth()]} ${then.getDate()}, ${then.getFullYear()}`;
+  }
+
+  // Cập nhật thời gian tương đối khi trang tải
+  function updateRelativeTimes() {
+    document.querySelectorAll('.review-time').forEach(span => {
+      const iso = span.dataset.time;
+      if (iso) {
+        span.textContent = `(${formatRelativeTime(iso)})`;
+      }
+    });
+  }
+
+  updateRelativeTimes();
+  setInterval(updateRelativeTimes, 60000);
+
+  document.addEventListener('DOMContentLoaded', () => {
+  // Xử lý nút xóa
+  document.querySelectorAll('.delete-review-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Bạn có chắc muốn xóa bình luận này?')) return;
+      const reviewId = btn.dataset.reviewId;
+
+      fetch("{% url 'delete_review' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({review_id: reviewId}),
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Xóa phần tử review trên trang
+          const reviewCard = document.getElementById(`review-card-${reviewId}`);
+          if (reviewCard) reviewCard.remove();
+        } else {
+          alert('Lỗi khi xóa bình luận: ' + (data.error || 'Không rõ lỗi'));
+        }
+      }).catch(() => alert('Lỗi kết nối server.'));
+    });
+  });
+});
+
+  // Utility: Debounce function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Video Playback
+  function playVideo(url) {
+    if (!navigator.onLine) {
+      alert('Bạn đang ngoại tuyến. Vui lòng kết nối mạng để xem video!');
+      return;
+    }
+    const elements = {
+      videoContainer: document.getElementById('videoContainer'),
+      moviePoster: document.getElementById('moviePoster'),
+      videoOverlay: document.getElementById('videoOverlay'),
+      mainVideo: document.getElementById('mainVideo'),
+      videoSpinner: document.getElementById('videoSpinner')
+    };
+    elements.videoSpinner.classList.add('active');
+    elements.moviePoster.classList.add('hidden');
+    elements.videoContainer.classList.remove('hidden');
+    elements.videoOverlay.classList.add('hidden');
+    elements.mainVideo.src = url;
+    elements.mainVideo.addEventListener('load', () => elements.videoSpinner.classList.remove('active'), { once: true });
+  }
+
+  window.playMovie = () => playVideo(`https://www.youtube.com/embed/{{ movie.video_url|slice:'17:' }}?autoplay=1`);
+  window.playTrailer = () => playVideo(`https://www.youtube.com/embed/{{ movie.trailer_url|slice:'17:' }}?autoplay=1`);
+
+  // Share Movie
+  window.shareMovie = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: '{{ movie.ten_phim }}',
+        text: 'Xem phim {{ movie.ten_phim }} trên Movie Recommender!',
+        url: window.location.href
+      }).catch(console.error);
+    } else {
+      alert('Chức năng chia sẻ không được hỗ trợ trên trình duyệt này.');
+    }
+  };
+
+  // Star Rating
+  function initializeStarRating(containerId, inputName, initialScore = 0) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+    for (let i = 5; i >= 1; i--) {
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.id = `star${i}-${containerId}`;
+      input.name = inputName;
+      input.value = i;
+      input.required = true;
+      input.setAttribute('aria-label', `${i} sao`);
+      if (i === initialScore) input.checked = true;
+
+      const label = document.createElement('label');
+      label.htmlFor = input.id;
+      label.className = 'star';
+      label.textContent = '★';
+
+      container.appendChild(input);
+      container.appendChild(label);
+    }
+
+    container.querySelectorAll('input').forEach(input => {
+      input.addEventListener('change', () => {
+        const selectedValue = parseInt(input.value);
+        container.querySelectorAll('label').forEach(label => {
+          const value = parseInt(label.htmlFor.match(/\d+/)[0]);
+          label.style.color = value <= selectedValue ? 'var(--rating-color)' : '#4b5563';
+          label.style.textShadow = value <= selectedValue ? 'var(--star-glow)' : 'none';
+        });
+      }, { passive: true });
+    });
+  }
+
+function displayStars(container, score) {
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement('span');
+    star.className = 'star';
+
+    if (i <= Math.floor(score)) {
+      // Sao đầy
+      star.textContent = '★';
+      star.style.color = 'var(--rating-color)';
+      star.style.textShadow = 'var(--star-glow)';
+    } else if (Math.abs(score - (i - 0.5)) < 0.25) {
+      // Nửa sao
+      star.innerHTML = '⯨'; // Bạn có thể thay bằng icon SVG nửa sao nếu thích
+      star.style.color = 'var(--rating-color)';
+      star.style.textShadow = 'var(--star-glow)';
+    } else {
+      // Sao rỗng
+      star.textContent = '☆';
+      star.style.color = '#4b5563';
+      star.style.textShadow = 'none';
+    }
+
+    container.appendChild(star);
+  }
+}
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    // Offline Detection
+    const offlineWarning = document.getElementById('offlineWarning');
+    function updateOnlineStatus() {
+      offlineWarning.classList.toggle('hidden', navigator.onLine);
+      if (!navigator.onLine) {
+        document.getElementById('videoContainer').classList.add('hidden');
+        document.getElementById('moviePoster').classList.remove('hidden');
+        document.getElementById('videoOverlay').classList.remove('hidden');
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus, { passive: true });
+    window.addEventListener('offline', updateOnlineStatus, { passive: true });
+    updateOnlineStatus();
+
+    // Play Icon
+    document.getElementById('playIcon').addEventListener('click', () => {
+      {% if movie.trailer_url %}
+        playTrailer();
+      {% elif phim_duoc_xem and movie.video_url %}
+        playMovie();
+      {% else %}
+        alert('Không có video để phát.');
+      {% endif %}
+    }, { passive: true });
+
+    // Intersection Observer for Lazy Loading and Fade-in
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = entry.target;
+          if (target.classList.contains('lazy')) {
+            target.src = target.dataset.src || target.src;
+            target.classList.remove('lazy');
+          }
+          if (target.classList.contains('fade-in')) {
+            target.classList.add('visible');
+          }
+          observer.unobserve(target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '100px' });
+
+    document.querySelectorAll('.lazy, .fade-in').forEach(el => observer.observe(el));
+
+    // Description Toggle
+    const descriptionPreview = document.getElementById('descriptionPreview');
+    const readMoreButton = document.getElementById('readMoreButton');
+    const buttonText = document.getElementById('buttonText');
+    const maxHeight = 5 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+    function checkDescriptionHeight() {
+      readMoreButton.classList.toggle('hidden', descriptionPreview.scrollHeight <= maxHeight);
+    }
+
+    readMoreButton.addEventListener('click', () => {
+      descriptionPreview.classList.toggle('expanded');
+      const isExpanded = descriptionPreview.classList.contains('expanded');
+      buttonText.textContent = isExpanded ? 'Thu gọn' : 'Đọc thêm';
+      readMoreButton.querySelector('svg').style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    }, { passive: true });
+
+    window.addEventListener('load', checkDescriptionHeight, { passive: true });
+    window.addEventListener('resize', debounce(checkDescriptionHeight, 100), { passive: true });
+
+    // Review Toggle
+document.querySelectorAll('.review-text').forEach(review => {
+  const reviewId = review.id.split('-')[1];
+  const readMoreBtn = document.querySelector(`.read-more-review[data-review-id="${reviewId}"]`);
+  if (!readMoreBtn) return; // tránh lỗi nếu không tìm thấy nút
+
+  const maxReviewHeight = 5 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+  function checkReviewHeight() {
+    readMoreBtn.classList.toggle('hidden', review.scrollHeight <= maxReviewHeight);
+  }
+
+  readMoreBtn.addEventListener('click', () => {
+    review.classList.toggle('expanded');
+    readMoreBtn.textContent = review.classList.contains('expanded') ? 'Thu gọn' : 'Đọc thêm';
+  }, { passive: true });
+
+  checkReviewHeight();
+  window.addEventListener('resize', debounce(checkReviewHeight, 100), { passive: true });
+});
+
+
+    // Star Rating Initialization
+    initializeStarRating('starRating', 'diem');
+
+    // Display Stars for Movie and Reviews
+    document.querySelectorAll('.review-stars').forEach(container => {
+      const score = parseInt(container.dataset.score) || 0;
+      displayStars(container, score);
+    });
+
+    // Character Counter
+    const textarea = document.getElementById('binh_luan');
+    const charCount = document.getElementById('charCount');
+    textarea.addEventListener('input', () => {
+      const count = textarea.value.length;
+      charCount.textContent = `${count}/500 ký tự`;
+      charCount.style.color = count > 500 ? '#e11d48' : '#d1d5db';
+      if (count > 500) textarea.value = textarea.value.slice(0, 500);
+    }, { passive: true });
+
+    // Favorite Button
+    const favoriteButton = document.getElementById('favoriteButton');
+    if (favoriteButton) {
+      favoriteButton.addEventListener('click', () => {
+        {% if user.is_authenticated %}
+          const movieId = favoriteButton.dataset.movieId;
+          fetch("{% url 'toggle_favorite' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ movie_id: movieId })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                favoriteButton.classList.toggle('active', data.is_favorite);
+                favoriteButton.querySelector('span').textContent = data.is_favorite ? 'Đã yêu thích' : 'Yêu thích';
+              } else {
+                alert(`Thao tác thất bại: ${data.error || 'Lỗi không xác định'}`);
+              }
+            })
+            .catch(error => {
+              alert('Lỗi kết nối đến server!');
+              console.error(error);
+            });
+        {% else %}
+          alert('Vui lòng đăng nhập để sử dụng chức năng yêu thích!');
+          window.location.href = "{% url 'login' %}";
+        {% endif %}
+      }, { passive: true });
+    }
+  });
+</script>
+{% endblock %}

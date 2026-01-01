@@ -1,0 +1,988 @@
+{% extends "myapp/layout/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<style>
+  :root {
+    --primary-color: #facc15;
+    --secondary-color: #1a1a2e;
+    --accent-color: #e11d48;
+    --text-color: #e5e7eb;
+    --overlay-opacity: 0.65;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s ease;
+    --container-max-width: 1440px;
+  }
+
+  body {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #2a2a4e 100%);
+    font-family: 'Inter', 'Montserrat', sans-serif;
+    color: var(--text-color);
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .movie-thumbnail {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+  }
+
+  .movie-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .movie-thumbnail:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .movie-thumbnail:hover img {
+    transform: scale(1.05);
+  }
+
+  .video-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, var(--overlay-opacity));
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .movie-thumbnail:hover .video-overlay {
+    opacity: 1;
+  }
+
+  .play-button {
+    background: var(--accent-color);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    transition: var(--transition);
+  }
+
+  .play-button:hover {
+    transform: scale(1.1);
+    background: #c8102e;
+  }
+
+  .play-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .back-to-top {
+    background: var(--accent-color);
+    padding: 10px;
+    border-radius: 50%;
+    transition: var(--transition);
+    z-index: 1000;
+  }
+
+  .back-to-top:hover {
+    background: #c8102e;
+    transform: scale(1.1);
+  }
+
+  .cta-button {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cta-button:hover {
+    background: #eab308;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .cta-button.secondary {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+  }
+
+  h2, h3 {
+    font-weight: 700;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  h2 { font-size: 1.8rem; }
+  h3 { font-size: 1.4rem; }
+
+  h2 i, h3 i {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  h2:hover i, h3:hover i {
+    transform: scale(1.1);
+  }
+
+  h2::after, h3::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 40%;
+    height: 3px;
+    background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+    transition: var(--transition);
+  }
+
+  h2:hover::after, h3:hover::after {
+    width: 60%;
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .swiper-button-next, .swiper-button-prev {
+    color: var(--text-color);
+    background: rgba(250, 204, 21, 0.3);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    transition: var(--transition);
+  }
+
+  .swiper-button-next:hover, .swiper-button-prev:hover {
+    background: rgba(250, 204, 21, 0.5);
+  }
+
+  .swiper-button-next::after, .swiper-button-prev::after {
+    font-size: 1rem;
+  }
+
+  .swiper-pagination-bullet {
+    background: var(--accent-color);
+    opacity: 0.7;
+    width: 8px;
+    height: 8px;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: var(--primary-color);
+    opacity: 1;
+    width: 10px;
+    height: 10px;
+  }
+
+  .movie-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0.3rem 0;
+  }
+
+  .movie-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .movie-description {
+    font-size: 0.95rem;
+    max-width: 80%;
+    line-height: 1.6;
+  }
+
+  .loading-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+    display: none;
+    position: absolute;
+  }
+
+  .new-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--accent-color);
+    color: var(--text-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+  }
+
+  .new-label i {
+    font-size: 0.9rem;
+  }
+
+  .fire-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--accent-color);
+    color: var(--text-color);
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .fire-label i {
+    font-size: 1rem;
+    animation: flicker 1.5s infinite;
+  }
+
+  .fire-icon {
+    animation: flicker 1.5s infinite;
+    color: var(--primary-color);
+  }
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: var(--primary-color);
+}
+
+  .star-rating i {
+    font-size: 0.9rem;
+  }
+
+  .star-rating .fa-star,
+  .star-rating .fa-star-half-o {
+    color: var(--primary-color);
+  }
+
+  .star-rating .fa-star-o {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  @keyframes flicker {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 1rem; }
+    .movie-thumbnail { 
+      aspect-ratio: 3 / 4; 
+      min-width: 80px; 
+    }
+    .movie-thumbnail h4 { font-size: 0.75rem; }
+    .movie-thumbnail p { font-size: 0.6rem; }
+    .star-rating { font-size: 0.6rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.2rem; }
+    h2 i, h3 i { font-size: 1rem; }
+    .swiper-button-next, .swiper-button-prev { width: 28px; height: 28px; }
+    .back-to-top { bottom: 1rem; right: 1rem; }
+    .movie-title { font-size: 1.8rem; }
+    .movie-description { max-width: 100%; }
+    .cta-button { padding: 6px 14px; font-size: 0.85rem; }
+    .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .new-label { font-size: 0.65rem; padding: 3px 6px; }
+    .new-label i { font-size: 0.8rem; }
+    .fire-label { font-size: 0.8rem; padding: 3px 5px; }
+    .fire-label i { font-size: 0.9rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .container { padding: 0 1.5rem; }
+  }
+
+  .background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.15;
+    filter: blur(3px);
+  }
+
+  #movieMain {
+    width: 100%;
+    height: 600px;
+  }
+
+  .carousel-control-prev, .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+  }
+
+  .carousel-control-prev-icon, .carousel-control-next-icon {
+    font-family: 'FontAwesome';
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .carousel-control-prev-icon::before { content: '\f053'; }
+  .carousel-control-next-icon::before { content: '\f054'; }
+
+  #filterContainer {
+    transition: var(--transition);
+    max-height: 1000px;
+    overflow: hidden;
+  }
+
+  #filterContainer.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  #toggleFilter .fa-eye-slash {
+    display: none;
+  }
+
+  #toggleFilter.hidden .fa-eye {
+    display: none;
+  }
+
+  #toggleFilter.hidden .fa-eye-slash {
+    display: inline;
+  }
+
+ .movie-rating {
+  color: #facc15;  /* màu vàng */
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.star-rating {
+  color: #facc15;  /* màu vàng */
+}
+
+
+  .carousel-inner {
+    transition: transform 0.9s ease-in-out;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    filter: drop-shadow(0 0 6px #000);
+  }
+
+  #img-yeuthich {
+    width: 100%;
+    height: 200px;
+  }
+
+  #phimyeuthich {
+    width: 100%;
+  }
+</style>
+
+<!-- Background Video -->
+<video class="background-video" autoplay loop muted playsinline aria-hidden="true">
+  {% for movie in phim_noi_bat %}
+    {% if forloop.first %}
+      <source src="{{ movie.trailer_url }}" type="video/mp4">
+    {% endif %}
+  {% endfor %}
+</video>
+
+<!-- Offline Warning -->
+<div id="offlineWarning" class="hidden fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-50" role="alert">
+  Bạn đang ngoại tuyến. Một số nội dung có thể không khả dụng.
+</div>
+
+<!-- Back to Top Button -->
+<button id="backToTop" class="fixed hidden bottom-5 right-5 back-to-top text-white" aria-label="Quay lại đầu trang" role="button">
+  <i class="fa fa-arrow-up w-5 h-5" aria-hidden="true"></i>
+</button>
+
+<div class="container py-8">
+  <!-- Movie Filter Section -->
+  <section class="mb-12 fade-in" role="region" aria-label="Bộ lọc phim">
+    <div class="flex justify-between items-center mb-4">
+      <h3><i class="fa fa-filter" aria-hidden="true"></i> Lọc phim</h3>
+      <button id="toggleFilter" class="cta-button secondary" aria-label="Ẩn hoặc hiện bộ lọc" role="button">
+        <i class="fa fa-eye" aria-hidden="true"></i>
+        <i class="fa fa-eye-slash" aria-hidden="true"></i>
+        <span>Ẩn bộ lọc</span>
+      </button>
+    </div>
+    <div id="filterContainer">
+      <form id="movieFilterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/10 p-6 rounded-xl shadow-lg" method="GET" action="{% url 'home' %}">
+        <div>
+          <label for="genreFilter" class="block text-sm font-semibold mb-1">Thể loại</label>
+          <select id="genreFilter" name="genre" class="w-full p-2 rounded-md bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-yellow-400" aria-label="Chọn thể loại phim">
+            <option value="">Tất cả thể loại</option>
+            {% for genre in all_genres %}
+              <option value="{{ genre.id }}" {% if request.GET.genre == genre.id|stringformat:"s" %}selected{% endif %}>{{ genre.ten }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="yearFilter" class="block text-sm font-semibold mb-1">Năm phát hành</label>
+          <select id="yearFilter" name="year" class="w-full p-2 rounded-md bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-yellow-400" aria-label="Chọn năm phát hành">
+            <option value="">Tất cả năm</option>
+            {% for year in all_years %}
+              <option value="{{ year.year }}" {% if request.GET.year == year.year|stringformat:"s" %}selected{% endif %}>{{ year.year }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="statusFilter" class="block text-sm font-semibold mb-1">Trạng thái</label>
+          <select id="statusFilter" name="status" class="w-full p-2 rounded-md bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-yellow-400" aria-label="Chọn trạng thái phim">
+            <option value="">Tất cả trạng thái</option>
+            <option value="dang_chieu" {% if request.GET.status == "dang_chieu" %}selected{% endif %}>Đang chiếu</option>
+            <option value="sap_chieu" {% if request.GET.status == "sap_chieu" %}selected{% endif %}>Sắp chiếu</option>
+          </select>
+        </div>
+        <div class="flex gap-2 items-end">
+          <button type="submit" class="cta-button w-full" aria-label="Lọc phim"><i class="fa fa-search" aria-hidden="true"></i> Lọc</button>
+          <button type="button" id="resetFilter" class="cta-button secondary w-full" aria-label="Đặt lại bộ lọc"><i class="fa fa-undo" aria-hidden="true"></i> Đặt lại</button>
+        </div>
+      </form>
+
+      <!-- Filter Results -->
+     {% if has_filter %}
+        <div id="filterResults" class="mt-8">
+          <h3><i class="fa fa-search"></i> Kết quả tìm kiếm</h3>
+          {% if danh_sach_phim %}
+            <div class="grid grid-cols-4 gap-3">
+              {% for movie in danh_sach_phim %}
+                <a href="{% url 'chitietphim' maphim=movie.maphim %}" class="movie-thumbnail" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+                  <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                  {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                    <span class="new-label"><i class="fa fa-bolt"></i> New</span>
+                  {% endif %}
+                  <div class="video-overlay">
+                    <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url }}">
+                      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                      <span class="loading-spinner"></span>
+                    </button>
+                  </div>
+                  <div class="p-2">
+                    <h4 class="text-base font-semibold line-clamp-1">{{ movie.ten_phim }}</h4>
+                    <p class="text-xs text-gray-400">{{ movie.ngay_phat_hanh|date:"Y" }} - {{ movie.trang_thai|title }}</p>
+                  {% if movie.danh_gia %}
+  ⭐ {{ movie.danh_gia|floatformat:1 }}/5
+{% else %}
+  ⭐ Chưa có đánh giá
+{% endif %}
+
+
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-gray-400">Không tìm thấy phim phù hợp với bộ lọc.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+ <section class="hero">
+{% include "myapp/pages/hero_video.html" %}
+
+</section>
+
+  <!-- Main Carousel -->
+  <section class="mb-12 fade-in" role="region" aria-label="Phim nổi bật">
+    <div id="carouselExample" class="carousel slide carousel-fade rounded-xl overflow-hidden" data-bs-ride="carousel" data-bs-interval="4500">
+      <div class="carousel-inner">
+        {% for movie in phim_noi_bat %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="movie-thumbnail" id="movieMain">
+                <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                  <span class="new-label"><i class="fa fa-bolt" aria-hidden="true"></i> New</span>
+                {% endif %}
+                <div class="video-overlay">
+                  <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url }}">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span class="loading-spinner"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/80 to-transparent">
+                <span class="text-sm font-semibold uppercase text-gray-200">Phim nổi bật</span>
+                <h2 class="movie-title"><i class="fa fa-fire fire-icon" aria-hidden="true"></i> {{ movie.ten_phim }}</h2>
+                <div class="movie-details">
+                  <span>{{ movie.ngay_phat_hanh|date:"Y" }}</span>
+                  <span>{{ movie.thoi_luong }} phút</span>
+                  <span>Thể loại: 
+                    {% for tl in movie.the_loai.all %}
+                      {{ tl.ten }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                      Không có thể loại
+                    {% endfor %}
+                  </span>
+                <div class="movie-rating" style="color: #facc15; font-weight: 600; font-size: 1rem;">
+  {% if movie.danh_gia %}
+    <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+  {% else %}
+    <span>⭐ Chưa có đánh giá</span>
+  {% endif %}
+</div>
+
+                </div>
+                <p class="movie-description">{{ movie.mo_ta|truncatewords:40 }}</p>
+                <div class="flex gap-3">
+                  <a href="{% url 'chitietphim' maphim=movie.maphim %}" class="cta-button" aria-label="Xem phim ngay"><i class="fa fa-play" aria-hidden="true"></i> Xem ngay</a>
+                  <a href="{% url 'chitietphim' maphim=movie.maphim %}" class="cta-button secondary" aria-label="Xem chi tiết phim"><i class="fa fa-info-circle" aria-hidden="true"></i> Chi tiết</a>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" aria-label="Slide trước">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" aria-label="Slide tiếp theo">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Phim Yêu Thích -->
+  <section id="phimyeuthich" class="mb-12 fade-in" role="region" aria-label="Phim yêu thích">
+    <h3 class="text-xl font-bold text-yellow-400 flex items-center gap-2 mb-4">
+      <i class="fa fa-heart text-red-500" aria-hidden="true"></i> Phim yêu thích
+    </h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {% for movie in phim_yeu_thich %}
+        <a href="{% url 'chitietphim' maphim=movie.maphim %}" 
+           class="relative bg-slate-800 rounded-lg overflow-hidden shadow hover:shadow-lg transition-all duration-300 group"
+           aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+          <div id="img-yeuthich" class="relative aspect-[3/4] overflow-hidden">
+            <img src="{{ movie.anh_bia_url }}" 
+                 alt="{{ movie.ten_phim }}" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 lazy" 
+                 data-src="{{ movie.anh_bia_url }}" 
+                 loading="lazy">
+            {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+              <span class="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded shadow">
+                <i class="fa fa-bolt" aria-hidden="true"></i> New
+              </span>
+            {% endif %}
+            <div class="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300">
+              <button class="play-button text-white" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url }}">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                <span class="loading-spinner"></span>
+              </button>
+            </div>
+          </div>
+          <div class="p-2">
+            <h4 class="text-base font-semibold text-white truncate">{{ movie.ten_phim }}</h4>
+            <p class="text-xs text-gray-400">{{ movie.thoi_luong }} phút</p>
+            <div class="star-rating">
+              {% if movie.danh_gia %}
+                <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+              {% else %}
+                <span class="italic">⭐ Chưa có đánh giá</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Phim Mới Nhất -->
+  <section class="mb-12 fade-in" role="region" aria-label="Phim mới nhất">
+    <h2><i class="fa fa-film" aria-hidden="true"></i> Phim mới nhất</h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for movie in danh_sach_phim %}
+          <div class="swiper-slide">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="movie-thumbnail">
+                <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                  <span class="new-label"><i class="fa fa-bolt" aria-hidden="true"></i> New</span>
+                {% endif %}
+                <div class="video-overlay">
+                  <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url|default:movie.video_url }}">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span class="loading-spinner"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-2">
+                <h4 class="text-base font-semibold line-clamp-1">{{ movie.ten_phim }}</h4>
+                <p class="text-xs text-gray-400">{{ movie.thoi_luong }} phút</p>
+                <div class="star-rating">
+                  {% if movie.danh_gia %}
+                    <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+                  {% else %}
+                    <span>⭐ Chưa có đánh giá</span>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </section>
+
+  <!-- Phim Hay Nhất -->
+  <section class="mb-12 fade-in" role="region" aria-label="Phim hay nhất">
+    <h2><i class="fa fa-fire fire-icon" aria-hidden="true"></i> Phim hay nhất</h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for movie in phim_hay_nhat %}
+          <div class="swiper-slide">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="movie-thumbnail">
+                <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                  <span class="fire-label"><i class="fa fa-fire" aria-hidden="true"></i></span>
+                {% endif %}
+                <div class="video-overlay">
+                  <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url|default:movie.video_url }}">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span class="loading-spinner"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-2">
+                <h4 class="text-base font-semibold line-clamp-1">{{ movie.ten_phim }}</h4>
+                <p class="text-xs text-gray-400">{{ movie.thoi_luong }} phút</p>
+                <div class="star-rating">
+                  {% if movie.danh_gia %}
+                    <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+                  {% else %}
+                    <span>⭐ Chưa có đánh giá</span>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </section>
+
+  <!-- Phim Đang Chiếu -->
+  <section class="mb-12 fade-in" role="region" aria-label="Phim đang chiếu">
+    <h2><i class="fa fa-ticket" aria-hidden="true"></i> Phim đang chiếu</h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for movie in phim_dang_chieu %}
+          <div class="swiper-slide">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="movie-thumbnail">
+                <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                  <span class="new-label"><i class="fa fa-bolt" aria-hidden="true"></i> New</span>
+                {% endif %}
+                <div class="video-overlay">
+                  <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url|default:movie.video_url }}">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span class="loading-spinner"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-2">
+                <h4 class="text-base font-semibold line-clamp-1">{{ movie.ten_phim }}</h4>
+                <p class="text-xs text-gray-400">{{ movie.thoi_luong }} phút</p>
+                <div class="star-rating">
+                  {% if movie.danh_gia %}
+                    <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+                  {% else %}
+                    <span>⭐ Chưa có đánh giá</span>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </section>
+
+  <!-- Phim Sắp Chiếu -->
+  <section class="mb-12 fade-in" role="region" aria-label="Phim sắp chiếu">
+    <h2><i class="fa fa-clock-o" aria-hidden="true"></i> Phim sắp chiếu</h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        {% for movie in phim_sap_chieu %}
+          <div class="swiper-slide">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="movie-thumbnail">
+                <img src="{{ movie.anh_bia_url }}" alt="{{ movie.ten_phim }}" class="lazy" data-src="{{ movie.anh_bia_url }}" loading="lazy">
+                {% if movie.ngay_phat_hanh|timesince <= "30 days" %}
+                  <span class="new-label"><i class="fa fa-bolt" aria-hidden="true"></i> New</span>
+                {% endif %}
+                <div class="video-overlay">
+                  <button class="play-button" aria-label="Phát trailer" data-trailer-url="{{ movie.trailer_url|default:movie.video_url }}">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span class="loading-spinner"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-2">
+                <h4 class="text-base font-semibold line-clamp-1">{{ movie.ten_phim }}</h4>
+                <p class="text-xs text-gray-400">{{ movie.ngay_phat_hanh|date:"d/m/Y" }}</p>
+                <div class="star-rating">
+                  {% if movie.danh_gia %}
+                    <span>⭐ {{ movie.danh_gia|floatformat:1 }}/5</span>
+                  {% else %}
+                    <span>⭐ Chưa có đánh giá</span>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </section>
+
+  {% include 'myapp/pages/recommended.html' %}
+</div>
+
+<script>
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+};
+
+// Reset Filter
+document.getElementById('resetFilter').addEventListener('click', () => {
+  const form = document.getElementById('movieFilterForm');
+  form.querySelectorAll('select').forEach(select => select.value = '');
+  form.submit();
+});
+
+// Offline Detection
+const offlineWarning = document.getElementById('offlineWarning');
+const updateOnlineStatus = () => offlineWarning.classList.toggle('hidden', navigator.onLine);
+window.addEventListener('online', updateOnlineStatus, { passive: true });
+window.addEventListener('offline', updateOnlineStatus, { passive: true });
+updateOnlineStatus();
+
+// Back to Top
+const backToTopButton = document.getElementById('backToTop');
+const toggleBackToTop = debounce(() => {
+  backToTopButton.classList.toggle('hidden', window.scrollY < 200);
+}, 100);
+window.addEventListener('scroll', toggleBackToTop, { passive: true });
+backToTopButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }), { passive: true });
+
+// Toggle Filter
+const toggleFilterButton = document.getElementById('toggleFilter');
+const filterContainer = document.getElementById('filterContainer');
+toggleFilterButton.addEventListener('click', () => {
+  const isHidden = filterContainer.classList.toggle('hidden');
+  toggleFilterButton.classList.toggle('hidden');
+  toggleFilterButton.querySelector('span').textContent = isHidden ? 'Hiện bộ lọc' : 'Ẩn bộ lọc';
+});
+
+// Swiper Initialization
+const swiperConfigs = {
+  'phim_moi_nhat': { slidesPerView: 5, spaceBetween: 16 },
+  'phim_hay_nhat': { slidesPerView: 4, spaceBetween: 14 },
+  'phim_dang_chieu': { slidesPerView: 4, spaceBetween: 14 },
+  'phim_sap_chieu': { slidesPerView: 4, spaceBetween: 14 }
+};
+
+document.querySelectorAll('.mySwiper').forEach(swiperEl => {
+  const sectionId = swiperEl.closest('section').id || 'default';
+  const config = swiperConfigs[sectionId] || { slidesPerView: 4, spaceBetween: 16 };
+  new Swiper(swiperEl, {
+    ...config,
+    loop: true,
+    lazy: { enabled: true, loadPrevNext: true },
+    autoplay: { delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true },
+    pagination: { el: '.swiper-pagination', clickable: true },
+    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+    breakpoints: {
+      640: { slidesPerView: Math.max(2, config.slidesPerView - 3), spaceBetween: 10 },
+      768: { slidesPerView: Math.max(3, config.slidesPerView - 2), spaceBetween: 12 },
+      1024: { slidesPerView: Math.max(4, config.slidesPerView - 1), spaceBetween: 14 },
+      1280: { slidesPerView: config.slidesPerView, spaceBetween: 16 },
+      1440: { slidesPerView: config.slidesPerView + 1, spaceBetween: 18 }
+    }
+  });
+});
+
+// Lazy Loading
+const lazyImages = document.querySelectorAll('img.lazy');
+const loadImage = img => {
+  img.src = img.dataset.src;
+  img.classList.remove('lazy');
+};
+
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        loadImage(entry.target);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '200px', threshold: 0.1 });
+  lazyImages.forEach(img => observer.observe(img));
+} else {
+  const checkImages = debounce(() => {
+    lazyImages.forEach(img => {
+      if (img.getBoundingClientRect().top <= window.innerHeight && img.classList.contains('lazy')) {
+        loadImage(img);
+      }
+    });
+  }, 100);
+  window.addEventListener('scroll', checkImages, { passive: true });
+  checkImages();
+}
+
+// Fade-in Animation
+const fadeIns = document.querySelectorAll('.fade-in');
+if ('IntersectionObserver' in window) {
+  const fadeObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '200px', threshold: 0.1 });
+  fadeIns.forEach(el => fadeObserver.observe(el));
+} else {
+  fadeIns.forEach(el => el.classList.add('visible'));
+}
+
+// Trailer Loading
+document.querySelectorAll('.play-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const url = button.dataset.trailerUrl;
+    const overlay = button.closest('.video-overlay');
+    const spinner = button.querySelector('.loading-spinner');
+    spinner.style.display = 'block';
+
+    let videoId = '';
+    const urlPatterns = [
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+      /^([^"&?\/\s]{11})$/
+    ];
+
+    for (const pattern of urlPatterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        videoId = match[1];
+        break;
+      }
+    }
+
+    if (!videoId) {
+      spinner.style.display = 'none';
+      overlay.innerHTML = '<p class="text-red-400 text-center">Trailer không hợp lệ</p>';
+      return;
+    }
+
+    overlay.innerHTML = `
+      <iframe class="w-full h-full rounded-xl" 
+              src="https://www.youtube.com/embed/${videoId}?controls=1&autoplay=1" 
+              frameborder="0" 
+              allowfullscreen 
+              title="Trailer phim"></iframe>
+    `;
+    spinner.style.display = 'none';
+  });
+});
+</script>
+{% endblock %}
+

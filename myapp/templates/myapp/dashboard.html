@@ -1,0 +1,841 @@
+{% extends "myapp/layout/base.html" %}
+{% block content %}
+<style>
+  :root {
+    --primary-color: #28a745;
+    --secondary-color: #6c757d;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --dark-bg: #1c2526;
+    --light-bg: #f8fafc;
+    --text-dark: #1a202c;
+    --text-muted: #718096;
+    --gradient-bg: linear-gradient(135deg, #e2e8f0 0%, #edf2f7 100%);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  body {
+    background: var(--gradient-bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-dark);
+  }
+
+  .container {
+    max-width: 1400px;
+    padding: 2rem 1rem;
+    margin: 0 auto;
+  }
+
+  .admin-heading {
+    font-weight: 800;
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, var(--primary-color), #38b2ac);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 1s ease-out;
+    text-align: center;
+  }
+
+  .card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow);
+  }
+
+  .card-header {
+    background: var(--dark-bg);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 16px 16px 0 0;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table {
+    margin-bottom: 0;
+    background: transparent;
+  }
+
+  .table th,
+  .table td {
+    vertical-align: middle;
+    padding: 1rem;
+    border: none;
+    color: var(--text-dark);
+  }
+
+  .table thead th {
+    background: rgba(255, 255, 255, 0.9);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+
+  .table tbody tr {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.01);
+  }
+
+  .btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-success {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+
+  .btn-danger {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+  }
+
+  .btn-warning {
+    background: var(--warning-color);
+    border-color: var(--warning-color);
+    color: var(--text-dark);
+  }
+
+  .btn-outline-secondary {
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+  }
+
+  .pagination .page-link {
+    color: var(--text-dark);
+    background: transparent;
+    border: none;
+    margin: 0 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .pagination .page-item.active .page-link {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+  }
+
+  .pagination .page-item.disabled .page-link {
+    color: var(--text-muted);
+    background: transparent;
+  }
+
+  .badge {
+    font-weight: 600;
+    padding: 0.6em 1em;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+  }
+
+  .badge:hover {
+    transform: scale(1.1);
+  }
+
+  .chart-wrapper {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    animation: slideUp 1s ease-out;
+  }
+
+  .stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    transition: transform 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-8px);
+  }
+
+  .stat-card .card-body {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .stat-card .card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+  }
+
+  .stat-card .card-text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary-color);
+  }
+
+  .list-group-item {
+    background: var(--glass-bg);
+    border: none;
+    padding: 1rem 1.5rem;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .list-group-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .admin-heading {
+      font-size: 1.8rem;
+    }
+    .card-header {
+      font-size: 1rem;
+      padding: 1rem;
+    }
+    .table th, .table td {
+      padding: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+    }
+    .stat-card .card-text {
+      font-size: 1.5rem;
+    }
+    .chart-wrapper {
+      padding: 1.5rem;
+    }
+  }
+</style>
+
+<div class="container mt-5">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-5">
+    <h1 class="admin-heading">🎬 Trang Quản Trị</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'home' %}" class="btn btn-outline-secondary">⬅️ Trang người dùng</a>
+      <a href="{% url 'admin_add_movie' %}" class="btn btn-success">+ Thêm phim</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Danh sách phim -->
+    <div class="col-lg-6">
+      <div class="card shadow">
+        <div class="card-header">
+          <span>🎥 Danh sách phim</span>
+        </div>
+        <div class="card-body p-0">
+          <form method="get" class="p-3">
+            <div class="input-group mb-3">
+              <input type="text" name="q" value="{{ movie_query }}" class="form-control" placeholder="🔍 Tìm phim theo tên..." aria-label="Tìm kiếm phim">
+              <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+            </div>
+          </form>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">Mã</th>
+                  <th style="width: 25%;">Tên</th>
+                  <th style="width: 25%;">Thể loại</th>
+                  <th style="width: 15%;">Ngày</th>
+                  <th style="width: 20%;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for movie in movies %}
+                <tr>
+                  <td class="fw-semibold">{{ movie.maphim }}</td>
+                  <td>{{ movie.ten_phim }}</td>
+                  <td>
+                    {% for genre in movie.the_loai.all %}
+                      <span class="badge bg-secondary me-1">{{ genre.ten }}</span>
+                    {% endfor %}
+                  </td>
+                  <td>{{ movie.ngay_phat_hanh|date:"d/m/Y" }}</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'admin_edit_movie' movie.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+                      <a href="{% url 'admin_delete_movie' movie.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xoá?');">🗑️ Xoá</a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">Không có phim nào.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="5" class="text-center">
+                    <nav aria-label="Phân trang phim">
+                      <ul class="pagination justify-content-center mb-0">
+                        {% if movies.has_previous %}
+                          <li class="page-item">
+                            <a class="page-link" href="?q={{ movie_query }}&movie_page={{ movies.previous_page_number }}" aria-label="Previous">&laquo;</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                          </li>
+                        {% endif %}
+                        {% for num in movies.paginator.page_range %}
+                          {% if num == movies.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                          {% elif num > movies.number|add:-2 and num < movies.number|add:2 %}
+                            <li class="page-item"><a class="page-link" href="?q={{ movie_query }}&movie_page={{ num }}">{{ num }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                        {% if movies.has_next %}
+                          <li class="page-item">
+                            <a class="page-link" href="?q={{ movie_query }}&movie_page={{ movies.next_page_number }}" aria-label="Next">&raquo;</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách người dùng -->
+    <div class="col-lg-6">
+      <div class="card shadow">
+        <div class="card-header">
+          <span>👥 Danh sách người dùng</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 40%;">Email</th>
+                  <th style="width: 40%;">Họ tên</th>
+                  <th style="width: 20%;">Nhân viên</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in users %}
+                <tr>
+                  <td>{{ u.email }}</td>
+                  <td>{{ u.fullname }}</td>
+                  <td>
+                    {% if u.is_staff %}
+                      <span class="text-success fw-bold">✅</span>
+                    {% else %}
+                      <span class="text-danger fw-bold">❌</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">Không có người dùng nào.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-center">
+                    <nav aria-label="Phân trang người dùng">
+                      <ul class="pagination justify-content-center mb-0">
+                        {% if users.has_previous %}
+                          <li class="page-item">
+                            <a class="page-link" href="?user_page={{ users.previous_page_number }}" aria-label="Previous">&laquo;</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                          </li>
+                        {% endif %}
+                        {% for num in users.paginator.page_range %}
+                          {% if num == users.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                          {% elif num > users.number|add:-2 and num < users.number|add:2 %}
+                            <li class="page-item"><a class="page-link" href="?user_page={{ num }}">{{ num }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                        {% if users.has_next %}
+                          <li class="page-item">
+                            <a class="page-link" href="?user_page={{ users.next_page_number }}" aria-label="Next">&raquo;</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách thể loại -->
+    <div class="col-lg-6">
+      <div class="card shadow">
+        <div class="card-header">
+          <span>🏷️ Danh sách thể loại</span>
+          <a href="{% url 'admin_add_genre' %}" class="btn btn-sm btn-success">+ Thêm thể loại</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 20%;">#</th>
+                  <th style="width: 60%;">Tên thể loại</th>
+                  <th style="width: 20%;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in genres %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ g.ten }}</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'admin_edit_genre' g.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+                      <a href="{% url 'admin_delete_genre' g.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xoá thể loại này?');">🗑️ Xoá</a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">Chưa có thể loại nào.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-center">
+                    <nav aria-label="Phân trang thể loại">
+                      <ul class="pagination justify-content-center mb-0">
+                        {% if genres.has_previous %}
+                          <li class="page-item"><a class="page-link" href="?genre_page={{ genres.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for num in genres.paginator.page_range %}
+                          {% if num == genres.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                          {% elif num > genres.number|add:-2 and num < genres.number|add:2 %}
+                            <li class="page-item"><a class="page-link" href="?genre_page={{ num }}">{{ num }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                        {% if genres.has_next %}
+                          <li class="page-item"><a class="page-link" href="?genre_page={{ genres.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách diễn viên -->
+    <div class="col-lg-6">
+      <div class="card shadow">
+        <div class="card-header">
+          <span>🎭 Danh sách diễn viên</span>
+          <a href="{% url 'admin_add_actor' %}" class="btn btn-sm btn-success">+ Thêm diễn viên</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 20%;">#</th>
+                  <th style="width: 60%;">Tên diễn viên</th>
+                  <th style="width: 20%;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for actor in actors %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ actor.ten }}</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'admin_edit_actor' actor.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+                      <a href="{% url 'admin_delete_actor' actor.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xoá?');">🗑️ Xoá</a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-4">Chưa có diễn viên nào.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-center">
+                    <nav aria-label="Phân trang diễn viên">
+                      <ul class="pagination justify-content-center mb-0">
+                        {% if actors.has_previous %}
+                          <li class="page-item"><a class="page-link" href="?actor_page={{ actors.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for num in actors.paginator.page_range %}
+                          {% if num == actors.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                          {% elif num > actors.number|add:-2 and num < actors.number|add:2 %}
+                            <li class="page-item"><a class="page-link" href="?actor_page={{ num }}">{{ num }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                        {% if actors.has_next %}
+                          <li class="page-item"><a class="page-link" href="?actor_page={{ actors.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách bình luận -->
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-header">
+          <span>💬 Danh sách bình luận / đánh giá</span>
+        </div>
+        <div class="card-body p-0">
+          <form method="get" class="p-3">
+            <div class="input-group mb-3">
+              <input type="text" name="review_q" value="{{ review_query }}" class="form-control" placeholder="🔍 Tìm theo tên phim hoặc email người dùng..." aria-label="Tìm kiếm đánh giá">
+              <button class="btn btn-dark" type="submit">Tìm</button>
+            </div>
+          </form>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 20%;">Người dùng</th>
+                  <th style="width: 20%;">Phim</th>
+                  <th style="width: 10%;">Điểm</th>
+                  <th style="width: 30%;">Bình luận</th>
+                  <th style="width: 15%;">Ngày</th>
+                  <th style="width: 5%;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dg in danh_gia %}
+                <tr>
+                  <td>{{ dg.user.email }}</td>
+                  <td>{{ dg.phim.ten_phim }}</td>
+                  <td><span class="badge bg-primary">{{ dg.diem }}/5</span></td>
+                  <td>{{ dg.binh_luan|truncatechars:60 }}</td>
+                  <td class="text-muted">{{ dg.ngay_danh_gia|date:"d/m/Y H:i" }}</td>
+                  <td>
+                    <a href="{% url 'admin_delete_review' dg.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa đánh giá này không?');">🗑️ Xoá</a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">Chưa có đánh giá nào.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6" class="text-center">
+                    <nav aria-label="Phân trang đánh giá">
+                      <ul class="pagination justify-content-center mb-0">
+                        {% if danh_gia.has_previous %}
+                          <li class="page-item"><a class="page-link" href="?review_q={{ review_query }}&review_page={{ danh_gia.previous_page_number }}">&laquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                        {% endif %}
+                        {% for num in danh_gia.paginator.page_range %}
+                          {% if num == danh_gia.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                          {% elif num > danh_gia.number|add:-2 and num < danh_gia.number|add:2 %}
+                            <li class="page-item"><a class="page-link" href="?review_q={{ review_query }}&review_page={{ num }}">{{ num }}</a></li>
+                          {% endif %}
+                        {% endfor %}
+                        {% if danh_gia.has_next %}
+                          <li class="page-item"><a class="page-link" href="?review_q={{ review_query }}&review_page={{ danh_gia.next_page_number }}">&raquo;</a></li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thống kê tổng quan -->
+  <hr class="my-5">
+  <h2 class="mb-4 admin-heading">📊 Thống kê hệ thống</h2>
+  <div class="row g-4">
+    {% for stat in stats %}
+    <div class="col-md-3">
+      <div class="card stat-card shadow">
+        <div class="card-body">
+          <h5 class="card-title">{{ stat.icon }} {{ stat.title }}</h5>
+          <p class="card-text">{{ stat.value }}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Top phim -->
+  <div class="row g-4 mt-5">
+    <div class="col-lg-6">
+      <h5 class="fw-bold mb-3">🔥 Top 5 phim xem nhiều</h5>
+      <ul class="list-group">
+        {% for phim in top_phim_xem %}
+          <li class="list-group-item">{{ phim.ten_phim }} - {{ phim.luot_xem }} lượt xem</li>
+        {% empty %}
+          <li class="list-group-item text-muted">Chưa có dữ liệu</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-lg-6">
+      <h5 class="fw-bold mb-3">🏆 Top 5 phim được đánh giá cao</h5>
+      <ul class="list-group">
+        {% for phim in top_phim_danh_gia %}
+          <li class="list-group-item">{{ phim.ten_phim }} - {{ phim.avg_diem|floatformat:1 }}/5</li>
+        {% empty %}
+          <li class="list-group-item text-muted">Chưa có dữ liệu</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Người dùng nổi bật -->
+  {% if top_user %}
+    <div class="mt-5">
+      <h5 class="fw-bold mb-3">👑 Người dùng hoạt động nhất:</h5>
+      <p class="lead">{{ top_user.email }} - {{ top_user.luot_xem }} lượt xem</p>
+    </div>
+  {% endif %}
+
+  <!-- Biểu đồ -->
+  <div class="row g-4 mt-5">
+    <div class="col-lg-6">
+      <div class="chart-wrapper">
+        <h5 class="fw-bold mb-3 text-center" style="color: #333;">📈 Lượt xem theo tháng</h5>
+        <canvas id="chartLuotXem"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="chart-wrapper">
+        <h5 class="fw-bold mb-3 text-center" style="color: #333;">⭐ Lượt đánh giá theo tháng</h5>
+        <canvas id="chartDanhGia"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const xemLabels = [{% for item in xem_theo_thang %}"{{ item.thang|date:'M Y' }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const xemData = [{% for item in xem_theo_thang %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const danhGiaLabels = [{% for item in danh_gia_theo_thang %}"{{ item.thang|date:'M Y' }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const danhGiaData = [{% for item in danh_gia_theo_thang %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+    const xemCtx = document.getElementById('chartLuotXem').getContext('2d');
+    const danhGiaCtx = document.getElementById('chartDanhGia').getContext('2d');
+
+    const gradientXem = xemCtx.createLinearGradient(0, 0, 0, 400);
+    gradientXem.addColorStop(0, 'rgba(40, 167, 69, 0.7)');
+    gradientXem.addColorStop(1, 'rgba(40, 167, 69, 0.05)');
+
+    const gradientDanhGia = danhGiaCtx.createLinearGradient(0, 0, 0, 400);
+    gradientDanhGia.addColorStop(0, 'rgba(220, 53, 69, 0.7)');
+    gradientDanhGia.addColorStop(1, 'rgba(220, 53, 69, 0.05)');
+
+    const commonOptions = {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${context.parsed.y}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+            color: '#718096',
+            font: { size: 12, weight: '500' },
+            stepSize: 100
+          },
+          grid: {
+            color: 'rgba(113, 128, 150, 0.3)',
+            borderColor: 'rgba(113, 128, 150, 0.5)',
+            drawBorder: true,
+            lineWidth: 1,
+            borderDash: [5, 5]
+          }
+        },
+        x: {
+          ticks: {
+            color: '#718096',
+            font: { size: 12, weight: '500' }
+          },
+          grid: {
+            display: true,
+            color: 'rgba(113, 128, 150, 0.3)',
+            borderColor: 'rgba(113, 128, 150, 0.5)',
+            drawBorder: true,
+            lineWidth: 1,
+            borderDash: [5, 5]
+          }
+        }
+      },
+      animation: {
+        duration: 2000,
+        easing: 'easeOutQuart'
+      }
+    };
+
+    new Chart(xemCtx, {
+      type: 'line',
+      data: {
+        labels: xemLabels,
+        datasets: [{
+          label: 'Lượt xem',
+          data: xemData,
+          fill: true,
+          backgroundColor: gradientXem,
+          borderColor: 'rgba(40, 167, 69, 1)',
+          tension: 0.5,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: 'rgba(40, 167, 69, 1)',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: 'rgba(40, 167, 69, 0.8)',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 3
+        }]
+      },
+      options: commonOptions
+    });
+
+    new Chart(danhGiaCtx, {
+      type: 'line',
+      data: {
+        labels: danhGiaLabels,
+        datasets: [{
+          label: 'Lượt đánh giá',
+          data: danhGiaData,
+          fill: true,
+          backgroundColor: gradientDanhGia,
+          borderColor: 'rgba(220, 53, 69, 1)',
+          tension: 0.5,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: 'rgba(220, 53, 69, 1)',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: 'rgba(220, 53, 69, 0.8)',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 3
+        }]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            ticks: {
+              ...commonOptions.scales.y.ticks,
+              stepSize: 10
+            }
+          }
+        }
+      }
+    });
+  </script>
+</div>
+{% endblock %}

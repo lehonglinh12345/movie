@@ -1,0 +1,588 @@
+{% extends "myapp/layout/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  :root {
+    /* Màu sắc */
+    --primary-color: #facc15; /* Màu vàng chính */
+    --secondary-color: #1a1a2e; /* Màu xanh navy đậm */
+    --accent-color: #e11d48; /* Màu đỏ nổi bật */
+    --text-color: #e5e7eb; /* Màu trắng nhạt */
+    --card-bg: #18181b; /* Màu nền thẻ phim */
+    --input-bg: #27272a; /* Màu nền input */
+    
+    /* Hiệu ứng và bóng */
+    --shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    --glow: 0 0 20px rgba(250, 204, 21, 0.3);
+    
+    /* Chuyển động */
+    --transition: 0.3s ease;
+  }
+
+  /* Thiết lập cơ bản */
+  body {
+    background: linear-gradient(145deg, var(--secondary-color) 0%, #2a2a4e 100%);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Container chính */
+  .container {
+    margin: 0 auto;
+    max-width: 1440px;
+    padding: 0 1.5rem;
+  }
+
+  /* Tiêu đề thể loại */
+  .genre-header {
+    align-items: center;
+    background: linear-gradient(to right, rgba(250, 204, 21, 0.1), transparent);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+
+  .genre-header::before {
+    background: linear-gradient(45deg, transparent, rgba(250, 204, 21, 0.2), transparent);
+    content: '';
+    height: 100%;
+    left: -100%;
+    position: absolute;
+    top: 0;
+    transition: left 0.5s ease;
+    width: 100%;
+  }
+
+  .genre-header:hover::before {
+    left: 100%;
+  }
+
+  .genre-icon {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-right: 1rem;
+    transition: transform var(--transition), color var(--transition);
+  }
+
+  .genre-header:hover .genre-icon {
+    color: var(--accent-color);
+    transform: rotate(15deg) scale(1.2);
+  }
+
+  .genre-title {
+    color: var(--text-color);
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 800;
+    margin: 0;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .genre-title::after {
+    background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+    bottom: -8px;
+    content: '';
+    height: 4px;
+    left: 0;
+    position: absolute;
+    transition: width var(--transition);
+    width: 50%;
+  }
+
+  .genre-title:hover::after {
+    width: 80%;
+  }
+
+  /* Thẻ phim */
+  .movie-card {
+    background: var(--card-bg);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    position: relative;
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  }
+
+  .movie-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 12px 40px rgba(250, 204, 21, 0.2);
+    transform: translateY(-8px);
+  }
+
+  .movie-card::before {
+    background: linear-gradient(45deg, rgba(250, 204, 21, 0.1), transparent);
+    content: '';
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    transition: opacity var(--transition);
+    width: 100%;
+    z-index: 1;
+  }
+
+  .movie-card:hover::before {
+    opacity: 1;
+  }
+
+  .movie-img {
+    aspect-ratio: 1 / 1; /* Tạo tỷ lệ hình vuông */
+    object-fit: cover;
+    position: relative;
+    transition: transform var(--transition), filter var(--transition);
+    width: 100%;
+    z-index: 0;
+  }
+
+  .movie-card:hover .movie-img {
+    filter: brightness(0.95);
+    transform: scale(1.05);
+  }
+
+  .card-body {
+    background: linear-gradient(to top, var(--card-bg), #1f2937);
+    padding: 1.5rem;
+    position: relative;
+    text-align: center;
+    z-index: 2;
+  }
+
+  .card-title {
+    color: var(--text-color);
+    font-size: clamp(1.2rem, 3vw, 1.4rem);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--transition);
+    white-space: nowrap;
+  }
+
+  .movie-card:hover .card-title {
+    color: var(--primary-color);
+  }
+
+  .card-meta {
+    color: #d1d5db;
+    display: flex;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .card-meta span {
+    background: var(--input-bg);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .card-text {
+    color: #9ca3af;
+    display: -webkit-box;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Nút hành động */
+  .btn-watch {
+    align-items: center;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 9999px;
+    color: var(--secondary-color);
+    display: inline-flex;
+    font-size: 0.95rem;
+    font-weight: 600;
+    gap: 0.5rem;
+    overflow: hidden;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+    transition: all var(--transition);
+  }
+
+  .btn-watch:hover {
+    background: #eab308;
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
+  }
+
+  .btn-favorite {
+    align-items: center;
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    border-radius: 9999px;
+    color: var(--primary-color);
+    display: inline-flex;
+    font-size: 0.95rem;
+    font-weight: 600;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+    transition: all var(--transition);
+  }
+
+  .btn-favorite:hover {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
+  }
+
+  .btn-favorite.active {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+  }
+
+  .button-group {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    justify-items: center;
+  }
+
+  /* Thông báo */
+  .alert-warning {
+    align-items: center;
+    background: linear-gradient(45deg, #f59e0b, #fbbf24);
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    color: #1f2937;
+    display: flex;
+    font-size: 1.1rem;
+    font-weight: 500;
+    gap: 1rem;
+    padding: 1.5rem;
+    transition: transform var(--transition);
+  }
+
+  .alert-warning:hover {
+    transform: translateY(-4px);
+  }
+
+  .alert-warning i {
+    animation: pulse 1.5s infinite;
+    font-size: 1.5rem;
+  }
+
+  /* Animation */
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .movie-card {
+    transition-delay: calc(0.1s * var(--i));
+  }
+
+  /* Danh sách phim - Hệ thống lưới */
+  .row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr); /* 2 cột trên mobile */
+  }
+
+  /* Responsive */
+  @media (max-width: 767px) {
+    .container {
+      padding: 0 0.75rem;
+    }
+
+    .genre-title {
+      font-size: clamp(1.25rem, 4vw, 1.5rem);
+    }
+
+    .genre-icon {
+      font-size: 1.75rem;
+    }
+
+    .movie-card {
+      border-radius: 12px;
+    }
+
+    .movie-img {
+      height: auto; /* Để aspect-ratio kiểm soát chiều cao */
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-meta {
+      font-size: 0.75rem;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-meta span {
+      padding: 0.2rem 0.4rem;
+    }
+
+    .card-text {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      margin-bottom: 1rem;
+      -webkit-line-clamp: 1;
+    }
+
+    .btn-watch,
+    .btn-favorite {
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .button-group {
+      gap: 0.5rem;
+      grid-template-columns: 1fr;
+    }
+
+    .alert-warning {
+      font-size: 0.95rem;
+      padding: 1rem;
+    }
+
+    .alert-warning i {
+      font-size: 1.2rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .row {
+      grid-template-columns: repeat(5, 1fr); /* 3 cột trên PC */
+    }
+
+    .container {
+      padding: 0 1rem;
+    }
+
+    .genre-title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+    }
+
+    .genre-icon {
+      font-size: 2rem;
+    }
+
+    .movie-img {
+      height: auto; /* Để aspect-ratio kiểm soát chiều cao */
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+    }
+
+    .card-text {
+      font-size: 0.85rem;
+      -webkit-line-clamp: 2;
+    }
+
+    .card-meta {
+      font-size: 0.8rem;
+    }
+
+    .btn-watch,
+    .btn-favorite {
+      font-size: 0.9rem;
+      padding: 0.65rem 1.25rem;
+    }
+
+    .alert-warning {
+      font-size: 1rem;
+      padding: 1.25rem;
+    }
+
+    .alert-warning i {
+      font-size: 1.25rem;
+    }
+
+    .button-group {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .movie-img {
+      height: auto; /* Giữ aspect-ratio */
+    }
+  }
+
+  @media (min-width: 1320px) {
+    .container {
+      padding: 0 2rem;
+    }
+  }
+</style>
+
+<!-- Nội dung chính -->
+<div class="container py-8">
+  <!-- Tiêu đề thể loại -->
+  <div class="genre-header fade-in">
+    <i class="bi bi-film genre-icon"></i>
+    <h2 class="genre-title">Thể loại: {{ the_loai.ten|default:'Không xác định' }}</h2>
+  </div>
+
+  <!-- Danh sách phim -->
+  {% if movies %}
+    <div class="row">
+      {% for movie in movies %}
+        <div class="movie-card fade-in" style="--i: {{ forloop.counter0 }}">
+          <!-- Ảnh bìa phim -->
+          <a href="{% url 'chitietphim' maphim=movie.maphim %}">
+            <img
+              src="{% if movie.anh_bia_url %}{{ movie.anh_bia_url }}{% elif movie.anh_bia %}{{ movie.anh_bia.url }}{% else %}{% static 'myapp/img/default_poster.webp' %}{% endif %}"
+              class="movie-img lazy"
+              data-src="{% if movie.anh_bia_url %}{{ movie.anh_bia_url }}{% elif movie.anh_bia %}{{ movie.anh_bia.url }}{% else %}{% static 'myapp/img/default_poster.webp' %}{% endif %}"
+              alt="{{ movie.ten_phim|default:'Phim không có tiêu đề' }}"
+              loading="lazy"
+            >
+          </a>
+          <!-- Nội dung thẻ phim -->
+          <div class="card-body">
+            <h5 class="card-title">{{ movie.ten_phim|default:'Không có tiêu đề' }}</h5>
+            <div class="card-meta">
+              <span>⏱ {{ movie.thoi_luong|default:'N/A' }} phút</span>
+              <span>📅 {{ movie.ngay_phat_hanh|date:'Y'|default:'N/A' }}</span>
+            </div>
+            <p class="card-text">{{ movie.mo_ta|truncatechars:80|default:'Không có mô tả.' }}</p>
+            <div class="button-group">
+              <!-- Nút xem phim -->
+              <a href="{% url 'chitietphim' maphim=movie.maphim %}" class="btn-watch">
+                <i class="bi bi-play-circle me-1"></i> Xem ngay
+              </a>
+              <!-- Nút yêu thích -->
+              {% if user.is_authenticated %}
+                <button
+                  class="btn-favorite {% if movie in user.favorites.all %}active{% endif %}"
+                  data-movie-id="{{ movie.id }}"
+                  aria-label="Thêm vào yêu thích"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  <span>{% if movie in user.favorites.all %}Đã yêu thích{% else %}Yêu thích{% endif %}</span>
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Thông báo không có phim -->
+    <div class="alert alert-warning mt-5 fade-in">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Không có phim nào trong thể loại này.
+    </div>
+  {% endif %}
+</div>
+
+<!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<!-- JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hiệu ứng fade-in khi cuộn
+    const fadeIns = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+    fadeIns.forEach((el) => observer.observe(el));
+
+    // Lazy load ảnh
+    const lazyImages = document.querySelectorAll('img.lazy');
+    const imgObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src || img.src;
+            img.classList.remove('lazy');
+            imgObserver.unobserve(img);
+          }
+        });
+      },
+      { rootMargin: '100px' }
+    );
+    lazyImages.forEach((img) => imgObserver.observe(img));
+
+    // Xử lý nút yêu thích
+    const favoriteButtons = document.querySelectorAll('.btn-favorite');
+    favoriteButtons.forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const movieId = button.dataset.movieId;
+          fetch("{% url 'toggle_favorite' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ movie_id: movieId }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                button.classList.toggle('active', data.is_favorite);
+                button.querySelector('span').textContent = data.is_favorite ? 'Đã yêu thích' : 'Yêu thích';
+              } else {
+                alert(`Thao tác thất bại: ${data.error || 'Lỗi không xác định'}`);
+              }
+            })
+            .catch((error) => {
+              alert('Lỗi kết nối đến server!');
+              console.error(error);
+            });
+        },
+        { passive: true }
+      );
+    });
+  });
+</script>
+{% endblock %}

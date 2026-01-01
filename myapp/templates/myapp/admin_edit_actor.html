@@ -1,0 +1,15 @@
+{% extends "myapp/layout/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>✏️ Sửa Diễn Viên</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="ten" class="form-label">Tên mới</label>
+      <input type="text" name="ten" id="ten" value="{{ actor.ten }}" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Huỷ</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "myapp/layout/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">
+        {% if form.instance.pk %}
+          ✏️ Sửa Phim
+        {% else %}
+          ➕ Thêm Phim
+        {% endif %}
+      </h4>
+      <a href="{% url 'admin_movie_list' %}" class="btn btn-sm btn-outline-light">⬅️ Danh sách phim</a>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table class="table table-bordered">
+          <tbody>
+            <tr>
+              <th>Mã phim</th>
+              <td>{{ form.maphim }}</td>
+            </tr>
+            <tr>
+              <th>Tên phim</th>
+              <td>{{ form.ten_phim }}</td>
+            </tr>
+            <tr>
+              <th>Trailer URL</th>
+              <td>{{ form.trailer_url }}</td>
+            </tr>
+            <tr>
+              <th>Video URL</th>
+              <td>{{ form.video_url }}</td>
+            </tr>
+            <tr>
+              <th>Thể loại</th>
+              <td>{{ form.the_loai }}</td>
+            </tr>
+            <tr>
+              <th>Mô tả</th>
+              <td>{{ form.mo_ta }}</td>
+            </tr>
+            <tr>
+              <th>Đạo diễn</th>
+              <td>{{ form.dao_dien }}</td>
+            </tr>
+            <tr>
+              <th>Diễn viên</th>
+              <td>{{ form.dien_vien }}</td>
+            </tr>
+            <tr>
+              <th>Ngày phát hành</th>
+              <td>{{ form.ngay_phat_hanh }}</td>
+            </tr>
+            <tr>
+              <th>Thời lượng (phút)</th>
+              <td>{{ form.thoi_luong }}</td>
+            </tr>
+            <tr>
+              <th>Lượt xem</th>
+              <td>{{ form.luot_xem }}</td>
+            </tr>
+
+            <tr>
+              <th>Ảnh bìa</th>
+              <td>
+                {{ form.anh_bia }}
+                {% if form.instance.anh_bia %}
+                  <div class="mt-2">
+                    <img src="{{ form.instance.anh_bia.url }}" alt="Ảnh bìa" class="img-thumbnail" style="max-height: 150px;">
+                  </div>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th>Trạng thái</th>
+              <td>{{ form.trang_thai }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-success">
+            💾 Lưu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

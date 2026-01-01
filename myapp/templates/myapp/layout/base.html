@@ -1,0 +1,582 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}Movie Streaming{% endblock %}</title>
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="icon" href="{% static 'icons/icon-192.png' %}">
+  <meta name="theme-color" content="#1a1a2e">
+
+  <!-- Fonts & CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+
+  <!-- Static CSS -->
+  <link rel="stylesheet" type="text/css" href="{% static 'myapp/css/style.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'myapp/css/backtotopp.css' %}">
+
+  {% block extra_css %}{% endblock %}
+
+  <style>
+    /* Global styles */
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{% static 'myapp/img/background-cinema.jpg' %}');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: #e5e7eb;
+    }
+
+    /* Splash Screen */
+    #custom-splash {
+      background: linear-gradient(135deg, #1a1a2e 0%, #4b0082 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s ease-out;
+    }
+    #custom-splash img {
+      width: 150px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .film-reel-loader {
+      display: flex;
+      gap: 8px;
+    }
+    .film-reel-loader div {
+      width: 12px;
+      height: 12px;
+      background: #facc15;
+      border-radius: 50%;
+      animation: reel-bounce 1.2s ease-in-out infinite;
+    }
+    .film-reel-loader div:nth-child(2) { animation-delay: 0.2s; }
+    .film-reel-loader div:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes reel-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(180deg, #1a1a2e 0%, #2a2a4e 100%);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      padding: 1rem 2rem;
+    }
+    .logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: scale(1.1);
+    }
+    .site-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #facc15;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .nav-link {
+      position: relative;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+      color: #e5e7eb;
+    }
+    .nav-link:hover {
+      color: #facc15 !important;
+      text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+    }
+    .nav-link.active {
+      color: #facc15 !important;
+      font-weight: bold;
+      text-shadow: 0 0 12px rgba(250, 204, 21, 0.8), 0 0 20px rgba(250, 204, 21, 0.5);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -2px;
+      left: 0;
+      background-color: #facc15;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .dropdown-menu {
+      background: #2a2a4e;
+      border: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .dropdown-item {
+      color: #e5e7eb !important;
+      transition: background 0.3s ease, text-shadow 0.3s ease;
+    }
+    .dropdown-item:hover {
+      background: #facc15 !important;
+      color: #1a1a2e !important;
+      text-shadow: none;
+    }
+    .dropdown-item.active {
+      color: #facc15 !important;
+      background: #2a2a4e !important;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.7);
+    }
+
+    /* Mobile styles */
+    @media (max-width: 767px) {
+      .navbar {
+        padding: 0.75rem 1rem !important;
+      }
+      .logo {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .site-title {
+        font-size: 1.2rem !important;
+      }
+    }
+
+    /* Tablet styles */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .logo {
+        width: 44px !important;
+        height: 44px !important;
+      }
+      .site-title {
+        font-size: 1.3rem !important;
+      }
+    }
+       .site-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #facc15;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 200px; /* Fixed width for marquee */
+    }
+    .site-title-text {
+      display: inline-block;
+      animation: marquee 8s linear infinite;
+    }
+    .site-title:hover .site-title-text {
+      animation-play-state: paused; /* Pause on hover */
+    }
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+/* 🌗 Sáng nhẹ - Soft Light Mode */
+body.light-mode {
+  background-color: #6696ddff !important;
+  color: #f3f4f6 !important;
+  background-image: none !important;
+}
+
+body.light-mode .navbar {
+  background: linear-gradient(180deg, #3b3b4e 0%, #4b5563 100%) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+body.light-mode .site-title {
+  color: #facc15;
+}
+
+body.light-mode .nav-link {
+  color: #e5e7eb !important;
+}
+
+body.light-mode .nav-link.active {
+  color: #facc15 !important;
+}
+
+body.light-mode .dropdown-menu {
+  background-color: #374151;
+}
+
+body.light-mode .dropdown-item {
+  color: #e5e7eb !important;
+}
+
+body.light-mode .dropdown-item:hover {
+  background-color: #facc15 !important;
+  color: #1a1a2e !important;
+}
+
+body.light-mode input,
+body.light-mode button {
+  background-color: #4b5563;
+  color: #fef9c3;
+  border-color: #facc15;
+}
+#scrollLoadingSpinner {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin-left: -25px;
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #facc15;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  z-index: 99999;
+  background: transparent;
+
+  opacity: 0.6;          /* mờ nhẹ khi hiện */
+  transition: opacity 0.3s ease;
+  display: none;
+}
+
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/* Sticky trên cùng */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  background-color: rgba(26, 26, 46, 0.85); /* mờ + màu nền */
+  transition: background-color 0.3s ease, padding 0.3s ease;
+}
+
+/* Khi scroll xuống (thu nhỏ padding) */
+.navbar.scrolled {
+  background-color: rgba(26, 26, 46, 0.95);
+  padding: 0.5rem 2rem !important;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 50%;
+  background-color: #facc15;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+  left: 0;
+}
+body, .navbar, .nav-link {
+  transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+}
+.logo:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 6px #facc15);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+
+  </style>
+</head>
+
+<body class="bg-slate-900 text-white"
+  style="background-image: linear-gradient(rgba(1, 1, 1, 0.5), rgba(0, 0, 0, 0.5)), url('{% static 'myapp/img/logo.jpg' %}'); 
+         background-size: cover; 
+         background-repeat: no-repeat; 
+         background-attachment: fixed; 
+         background-position: center;">
+  <!-- SPLASH SCREEN -->
+  <div id="custom-splash" class="fixed top-0 left-0 w-full h-full flex flex-col items-center justify-center z-50 transition-all duration-700 ease-in-out opacity-100">
+    <img src="{% static 'icons/icon-192.png' %}" alt="Logo" class="mb-6">
+    <div class="film-reel-loader">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+<div id="loadingOverlay"></div>
+<div id="scrollLoadingSpinner"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar bg-slate-900 px-4 py-3 ">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Logo / Brand -->
+      <a href="{% url 'home' %}" class="flex items-center gap-2 text-decoration-none">
+        <img src="{% static 'myapp/img/logo.jpg' %}" alt="Movie Recommender Logo" class="logo mr-2">
+              <h4 class="site-title"><span class="site-title-text">MOVIE STREAMING</span></h4>
+      </a>
+
+      <!-- Nút hamburger (mobile only) -->
+      <button id="btnToggleMenu" class="text-white md:hidden focus:outline-none" aria-label="Toggle menu">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+
+      <!-- Search desktop -->
+      <div class="hidden md:flex flex-1 mx-6">
+        <form action="{% url 'search_movies' %}" method="GET" class="flex w-full">
+          <input 
+            type="text" 
+            name="q" 
+            placeholder="Tìm phim..." 
+            class="flex-grow py-2 px-3 rounded-l-lg bg-slate-800 text-white border border-r-0 border-slate-600 focus:outline-none" />
+          <button type="submit" 
+            class="px-4 py-2 rounded-r-lg border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-slate-900 transition">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Menu chính desktop -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="{% url 'home' %}" 
+           class="nav-link whitespace-nowrap {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+          <i class="bi bi-house-heart-fill mr-1"></i> TRANG CHỦ
+        </a>
+        <a href="{% url 'gioithieu' %}" 
+           class="nav-link whitespace-nowrap {% if request.resolver_match.url_name == 'gioithieu' %}active{% endif %}">
+          <i class="bi bi-book-half mr-1"></i> GIỚI THIỆU
+        </a>
+
+        <!-- Dropdown Thể Loại -->
+        <div class="dropdown">
+          <button class="nav-link dropdown-toggle flex items-center {% if request.resolver_match.url_name == 'the_loai' %}active{% endif %}" 
+                  type="button" 
+                  data-bs-toggle="dropdown" 
+                  aria-expanded="false">
+            <i class="bi bi-collection-play-fill mr-1"></i> THỂ LOẠI 
+            <svg class="ml-1 w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M5.516 7.548L10 12.03l4.484-4.482 1.032 1.031L10 14.093 4.484 8.58z"/>
+            </svg>
+          </button>
+          <ul class="dropdown-menu bg-slate-800 rounded shadow-lg">
+            {% for category in categories %}
+            <li>
+              <a href="{% url 'the_loai' ten=category.ten %}" 
+                 class="dropdown-item {% if request.resolver_match.url_name == 'the_loai' and request.GET.ten == category.ten %}active{% endif %}">
+                {{ category.ten }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <a href="{% url 'lich_su_xem' %}" 
+           class="nav-link whitespace-nowrap {% if request.resolver_match.url_name == 'lich_su_xem' %}active{% endif %}">
+          <i class="bi bi-clock-history mr-1 "></i> LỊCH SỬ
+        </a>
+        <a href="{% url 'profile' %}" 
+           class="nav-link whitespace-nowrap {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="bi bi-person-circle mr-1"></i> TÔI
+        </a>
+      </div>
+    </div>
+
+
+    <!-- Menu & Search Mobile (ẩn mặc định, hiện khi toggle) -->
+    <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-4">
+      <!-- Search Mobile -->
+      <form action="{% url 'search_movies' %}" method="GET" class="flex flex-col">
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="Tìm phim..." 
+          class="py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-600 mb-2 focus:outline-none" />
+        <button type="submit" 
+          class="py-2 rounded-lg border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-slate-900 transition flex justify-center items-center gap-2">
+          <i class="fas fa-search"></i> Tìm
+        </button>
+      </form>
+
+      <!-- Menu Mobile -->
+      <a href="{% url 'home' %}" 
+         class="nav-link block {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <i class="bi bi-house-heart-fill mr-1"></i> TRANG CHỦ
+      </a>
+      <a href="{% url 'gioithieu' %}" 
+         class="nav-link block {% if request.resolver_match.url_name == 'gioithieu' %}active{% endif %}">
+        <i class="bi bi-book-half mr-1"></i> GIỚI THIỆU
+      </a>
+
+      <!-- Dropdown Mobile Thể Loại (toggle bằng JS) -->
+      <div>
+        <button id="mobileDropdownBtn" 
+                class="nav-link w-full flex justify-between items-center {% if request.resolver_match.url_name == 'the_loai' %}active{% endif %}">
+          <span><i class="bi bi-collection-play-fill mr-1"></i> THỂ LOẠI</span>
+          <svg class="w-4 h-4 fill-current transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M5.516 7.548L10 12.03l4.484-4.482 1.032 1.031L10 14.093 4.484 8.58z"/>
+          </svg>
+        </button>
+        <ul id="mobileDropdownMenu" class="hidden mt-2 pl-4 border-l border-yellow-400">
+          {% for category in categories %}
+          <li>
+            <a href="{% url 'the_loai' ten=category.ten %}" 
+               class="dropdown-item block px-4 py-2 {% if request.resolver_match.url_name == 'the_loai' and request.GET.ten == category.ten %}active{% endif %}">
+              {{ category.ten }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <a href="{% url 'lich_su_xem' %}" 
+         class="nav-link block {% if request.resolver_match.url_name == 'lich_su_xem' %}active{% endif %}">
+        <i class="bi bi-clock-history mr-1"></i> LỊCH SỬ
+      </a>
+      <a href="{% url 'profile' %}" 
+         class="nav-link block {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <i class="bi bi-person-circle mr-1"></i> TÔI
+      </a>
+    </div>
+    <button id="toggleDarkMode" class="text-yellow-400 hover:text-yellow-300 text-xl" aria-label="Chuyển chế độ">
+  <i class="fas fa-moon"></i>
+</button>
+
+  </nav>
+
+  <script>
+
+    
+    const spinner = document.getElementById('scrollLoadingSpinner');
+let lastScrollTop = 0;
+let hasScrolledDeep = false;
+let hasReloaded = false;
+let lastScrollTime = Date.now();
+
+window.addEventListener('scroll', function () {
+  let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const currentTime = Date.now();
+  const deltaTime = currentTime - lastScrollTime + 1;
+  const scrollDelta = scrollTop - lastScrollTop;
+  const scrollSpeed = Math.abs(scrollDelta) / deltaTime;
+
+  // Đã từng cuộn xuống >= 300px mới kích hoạt reload logic
+  if (scrollTop > 300) {
+    hasScrolledDeep = true;
+  }
+
+  // Reload chỉ khi:
+  // - Đã cuộn sâu
+  // - Vuốt lên (scrollDelta < 0)
+  // - Gần đỉnh (< 10px)
+  // - Vuốt thật mạnh (speed > 1)
+  if (
+    !hasReloaded &&
+    hasScrolledDeep &&
+    scrollDelta < 0 &&
+    scrollTop < 10 &&
+    scrollSpeed > 3
+  ) {
+    spinner.style.display = 'block';
+    hasReloaded = true;
+
+    setTimeout(() => {
+      location.reload();
+    }, 400); // hoặc 0 nếu bạn muốn tức thời
+  }
+
+  lastScrollTop = scrollTop;
+  lastScrollTime = currentTime;
+});
+
+
+
+window.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+
+      const toggleBtn = document.getElementById('toggleDarkMode');
+  const icon = toggleBtn.querySelector('i');
+  const userPref = localStorage.getItem('theme');
+  const body = document.body;
+
+  // Khôi phục chế độ từ LocalStorage
+  if (userPref === 'light') {
+    body.classList.add('light-mode');
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    icon.classList.toggle('fa-sun');
+    icon.classList.toggle('fa-moon');
+  });
+    // Toggle menu mobile
+    const btnToggleMenu = document.getElementById('btnToggleMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    btnToggleMenu.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Toggle dropdown mobile
+    const mobileDropdownBtn = document.getElementById('mobileDropdownBtn');
+    const mobileDropdownMenu = document.getElementById('mobileDropdownMenu');
+    mobileDropdownBtn.addEventListener('click', () => {
+      mobileDropdownMenu.classList.toggle('hidden');
+      mobileDropdownBtn.querySelector('svg').classList.toggle('rotate-180');
+    });
+
+    // Splash Screen LocalStorage
+    document.addEventListener("DOMContentLoaded", function () {
+      const splash = document.getElementById("custom-splash");
+      if (localStorage.getItem("splashShown")) {
+        splash.style.display = "none";
+      } else {
+        setTimeout(() => {
+          splash.classList.add("fade-out");
+          setTimeout(() => splash.style.display = "none", 1000);
+        }, 1000);
+        localStorage.setItem("splashShown", "true");
+      }
+    });
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'service-worker.js' %}")
+        .then(() => console.log("✅ Service Worker registered"))
+        .catch(error => console.log("❌ Đăng ký thất bại", error));
+    }
+  </script>
+
+  <!-- NỘI DUNG CHÍNH -->
+  <main class="container mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- SCRIPT -->
+  {% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+
+    
+  </script>
+  {% endblock %}
+</body>
+{% include 'myapp/layout/footer.html' %}
+
+</html>

@@ -1,0 +1,51 @@
+{% extends "myapp/layout/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">🎬 Danh sách phim</h4>
+      <div>
+        <a href="{% url 'admin_add_movie' %}" class="btn btn-sm btn-success me-2">+ Thêm phim</a>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-light">⬅️ Trang admin</a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <table class="table table-hover table-bordered mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Mã phim</th>
+            <th scope="col">Tên phim</th>
+            <th scope="col">Thể loại</th>
+            <th scope="col">Ngày phát hành</th>
+            <th scope="col">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for movie in movies %}
+          <tr>
+            <td><strong>{{ movie.maphim }}</strong></td>
+            <td>{{ movie.ten_phim }}</td>
+            <td>
+              {% for genre in movie.the_loai.all %}
+                <span class="badge bg-secondary">{{ genre.ten }}</span>{% if not forloop.last %} {% endif %}
+              {% endfor %}
+            </td>
+            <td>{{ movie.ngay_phat_hanh }}</td>
+            <td>
+              <a href="{% url 'admin_edit_movie' movie.id %}" class="btn btn-sm btn-warning">✏️</a>
+              <a href="{% url 'admin_delete_movie' movie.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xoá phim này?');">🗑️</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">Không có phim nào.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

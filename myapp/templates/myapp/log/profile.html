@@ -1,0 +1,592 @@
+{% extends "myapp/layout/base.html" %}
+{% load static %}
+
+{% block content %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  :root {
+    --primary-color: #facc15; /* Yellow */
+    --secondary-color: #1a1a2e; /* Deep navy */
+    --accent-color: #e11d48; /* Red */
+    --text-color: #e5e7eb; /* Soft white */
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --transition: 0.3s ease;
+  }
+
+  /* General Layout */
+  .container {
+    max-width: 1280px;
+    padding: 0 clamp(0.75rem, 3vw, 1rem);
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #18181b;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: transform var(--transition);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Favorite Section */
+  .favorite-section {
+    margin: clamp(1.5rem, 4vw, 2.5rem) 0;
+    background: var(--secondary-color);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .favorite-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .favorite-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.25rem;
+    left: 0;
+    width: 60%;
+    height: 0.2rem;
+    background: linear-gradient(to right, var(--accent-color), transparent);
+    transition: width var(--transition);
+  }
+
+  .favorite-title:hover::after {
+    width: 100%;
+  }
+
+  /* Favorite Item */
+  .favorite-item {
+    background: #1f2937;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .favorite-item:hover {
+    transform: translateY(-0.5rem);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .favorite-thumbnail {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .favorite-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition), opacity var(--transition);
+  }
+
+  .favorite-thumbnail:hover img {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  .favorite-info {
+    padding: clamp(0.75rem, 2vw, 1rem);
+    color: var(--text-color);
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .favorite-info h4 {
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .favorite-info p {
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+  }
+
+  .remove-favorite {
+    background: var(--accent-color);
+    color: var(--text-color);
+    padding: clamp(0.6rem, 2.5vw, 0.8rem) clamp(0.8rem, 3vw, 1rem);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    transition: all var(--transition);
+    touch-action: manipulation;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .remove-favorite:hover,
+  .remove-favorite:focus {
+    background: #c8102e;
+    transform: translateY(-2px);
+    outline: 2px solid var(--text-color);
+  }
+
+  /* Profile Section */
+  .profile-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .profile-version {
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    color: #6b7280;
+  }
+
+  .avatar-section img {
+    width: clamp(100px, 25vw, 120px);
+    height: clamp(100px, 25vw, 120px);
+    object-fit: cover;
+  }
+
+  .btn {
+    padding: clamp(0.5rem, 2vw, 0.75rem) 1rem;
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+    touch-action: manipulation;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .favorite-section {
+      padding: clamp(0.75rem, 2.5vw, 1rem);
+    }
+
+    .favorite-title {
+      font-size: clamp(1.25rem, 4vw, 1.5rem);
+    }
+
+    .favorite-thumbnail {
+      aspect-ratio: 4 / 3;
+    }
+
+    .favorite-info {
+      padding: 0.5rem;
+    }
+
+    .favorite-info h4 {
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    }
+
+    .favorite-info p {
+      font-size: clamp(0.7rem, 2.2vw, 0.8rem);
+    }
+
+    .profile-title {
+      font-size: clamp(1.25rem, 4vw, 1.5rem);
+    }
+
+    .avatar-section img {
+      width: clamp(80px, 20vw, 100px);
+      height: clamp(80px, 20vw, 100px);
+    }
+
+    .row:not(.favorite-section .row) {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .favorite-section .row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columns for larger mobile */
+      gap: 0.75rem;
+    }
+
+    .favorite-item:hover {
+      transform: none; /* Disable hover on mobile */
+    }
+
+    .favorite-thumbnail:hover img {
+      transform: none;
+      opacity: 1;
+    }
+
+    .remove-favorite {
+      padding: clamp(0.5rem, 2vw, 0.7rem) clamp(0.7rem, 2.5vw, 0.9rem);
+      font-size: clamp(0.75rem, 2.3vw, 0.85rem);
+    }
+  }
+
+  @media (max-width: 576px) {
+    .container {
+      padding: 0 0.5rem;
+    }
+
+    .card {
+      border-radius: 8px;
+    }
+
+    .favorite-item {
+      border-radius: 8px;
+    }
+
+    .favorite-section .row {
+      grid-template-columns: repeat(3, 1fr); /* 3 columns for medium mobile */
+      gap: 0.5rem;
+    }
+
+    .favorite-thumbnail {
+      aspect-ratio: 1 / 1; /* Square for smaller screens */
+    }
+  }
+
+  @media (max-width: 400px) {
+    .favorite-section .row {
+      grid-template-columns: repeat(2, 1fr); /* 2 columns for very small screens */
+      gap: 0.5rem;
+    }
+
+    .favorite-info h4 {
+      white-space: normal; /* Allow text wrapping */
+      font-size: clamp(0.75rem, 2.2vw, 0.85rem);
+    }
+
+    .favorite-info p {
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
+    }
+  }
+@media (max-width: 768px) {
+  .favorite-section .row {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+    gap: 0.75rem;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--accent-color) #2c2c2c;
+  }
+
+  /* Cho trình duyệt Webkit như Chrome, Safari */
+  .favorite-section .row::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .favorite-section .row::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 4px;
+  }
+
+  .favorite-section .row::-webkit-scrollbar-track {
+    background: #2c2c2c;
+  }
+
+  .favorite-section .col-12 {
+    flex: 0 0 auto;
+    width: 75%; /* Có thể điều chỉnh 60%, 80% tùy kích cỡ phim */
+    scroll-snap-align: start;
+  }
+}
+.favorite-section .row {
+  display: flex;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) #2c2c2c;
+}
+
+.favorite-section .row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.favorite-section .row::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 4px;
+}
+
+.favorite-section .row::-webkit-scrollbar-track {
+  background: #2c2c2c;
+}
+
+.favorite-section .col-12 {
+  flex: 0 0 auto;
+  width: 220px; /* hoặc điều chỉnh theo ý (vd: 250px, 280px...) */
+  scroll-snap-align: start;
+}
+
+
+</style>
+<div class="container mt-4">
+  <h1 class="profile-title text-center text-uppercase fw-bold mb-3">Thông Tin Cá Nhân</h1>
+  <p class="profile-version text-center mb-4">Phiên bản v2</p>
+  {% if user.is_staff %}
+  <div class="text-center mb-4">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-warning fw-bold">
+      🔐 Chuyển sang giao diện quản trị
+    </a>
+  </div>
+{% endif %}
+  <div class="row justify-content-center g-3">
+    <!-- Avatar Section -->
+    <div class="col-12 col-md-4 text-center avatar-section">
+      <div class="card h-100 bg-dark text-light p-3 border-0 shadow-sm">
+        <div class="position-relative d-inline-block mb-3">
+          <img 
+            id="avatar-preview" 
+            src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'myapp/img/slide3.jpg' %}{% endif %}" 
+            alt="Avatar" 
+            class="img-fluid rounded-circle border border-3 border-white shadow"
+            loading="lazy"
+          >
+          <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-2 border border-white"></span>
+        </div>
+
+        <!-- Form to change avatar -->
+        <form id="avatar-form" enctype="multipart/form-data" class="mb-3">
+          <label for="avatar-input" class="btn btn-outline-light btn-sm w-100 py-2" aria-label="Đổi avatar">
+            <i class="fas fa-camera me-2"></i>Đổi Avatar
+          </label>
+          <input 
+            type="file" 
+            id="avatar-input" 
+            name="avatar" 
+            accept="image/*" 
+            class="d-none" 
+            onchange="previewAvatar(event)"
+          >
+        </form>
+
+        <a href="{% url 'login' %}" class="text-decoration-none">
+          <button class="btn btn-danger w-100 fw-bold py-2 transition-all" aria-label="Đăng xuất">
+            <i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất
+          </button>
+        </a>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-12 col-md-6">
+      <div class="card bg-secondary p-3 shadow-lg">
+        <div class="mb-3">
+          <label class="form-label fw-bold text-light" for="fullname">Fullname:</label>
+          <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
+            <input 
+              type="text" 
+              id="fullname" 
+              class="form-control bg-dark text-light border-0" 
+              value="{{ user.fullname|default:'Chưa cập nhật' }}" 
+              disabled
+              aria-describedby="fullname-help"
+            >
+            <button id="edit-fullname" class="btn btn-sm btn-outline-light" aria-label="Chỉnh sửa tên">✏️</button>
+          </div>
+          <button id="save-fullname" class="btn btn-success mt-2 w-100 d-none" aria-label="Lưu tên">💾 Lưu</button>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-light">Email:</label>
+          <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
+            <span id="email" class="text-light">{{ user.email }}</span>
+            <button class="btn btn-sm btn-outline-light" aria-label="Chỉnh sửa email">✏️</button>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-light">Password:</label>
+          <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded">
+            <span id="password" class="text-light">******</span>
+            <button class="btn btn-sm btn-outline-light" aria-label="Chỉnh sửa mật khẩu">✏️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Favorite Movies Section -->
+  <div class="favorite-section fade-in" role="region" aria-label="Danh sách phim yêu thích">
+    <h3 class="favorite-title">❤️ Phim Yêu Thích</h3>
+<div class="row g-3 flex-nowrap">
+  {% for movie in user.favorites.all %}
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+          <div class="favorite-item" role="article" aria-label="Phim {{ movie.ten_phim }}">
+            <a href="{% url 'chitietphim' maphim=movie.maphim %}" aria-label="Xem chi tiết phim {{ movie.ten_phim }}">
+              <div class="favorite-thumbnail">
+                <img 
+                  src="{% if movie.anh_bia %}{{ movie.anh_bia_url }}{% else %}{% static 'myapp/img/logo.jpg' %}{% endif %}" 
+                  alt="Áp phích phim {{ movie.ten_phim }}" 
+                  loading="lazy" 
+                  class="lazyload"
+                >
+              </div>
+              <div class="favorite-info">
+                <h4>{{ movie.ten_phim }}</h4>
+                <p class="text-sm text-gray-400">⏱ {{ movie.thoi_luong }} phút</p>
+              </div>
+            </a>
+            <div class="favorite-info">
+              <button class="remove-favorite w-100" data-movie-id="{{ movie.id }}" aria-label="Xóa phim {{ movie.ten_phim }} khỏi danh sách yêu thích">
+                <svg class="w-4 h-4 inline-block me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-gray-400 text-center" role="status">Chưa có phim yêu thích nào.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+// Utility function to debounce events
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Preview avatar before upload
+function previewAvatar(event) {
+  const input = event.target;
+  const preview = document.getElementById('avatar-preview');
+  
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+    
+    // Automatically upload after selecting file
+    uploadAvatar();
+  }
+}
+
+// Upload avatar to server
+function uploadAvatar() {
+  const form = document.getElementById('avatar-form');
+  const formData = new FormData(form);
+
+  fetch("{% url 'update_avatar' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert("Đổi avatar thành công!");
+      document.getElementById('avatar-preview').src = data.avatar_url;
+    } else {
+      alert("Đổi avatar thất bại!");
+    }
+  })
+  .catch(error => {
+    alert("Lỗi kết nối đến server!");
+    console.error(error);
+  });
+}
+
+// Handle fullname edit
+document.getElementById("edit-fullname").addEventListener("click", function() {
+  const fullnameInput = document.getElementById("fullname");
+  const saveBtn = document.getElementById("save-fullname");
+
+  fullnameInput.removeAttribute("disabled");
+  fullnameInput.focus();
+  saveBtn.classList.remove("d-none");
+});
+
+document.getElementById("save-fullname").addEventListener("click", debounce(function() {
+  const fullnameInput = document.getElementById("fullname");
+  const saveBtn = document.getElementById("save-fullname");
+  const newFullname = fullnameInput.value;
+
+  fetch("{% url 'update_fullname' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ fullname: newFullname })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert("Cập nhật thành công!");
+      fullnameInput.setAttribute("disabled", "true");
+      saveBtn.classList.add("d-none");
+    } else {
+      alert("Cập nhật thất bại: " + data.error);
+    }
+  })
+  .catch(error => {
+    alert("Lỗi kết nối đến server!");
+    console.error(error);
+  });
+}, 300));
+
+document.querySelector('.favorite-section').addEventListener('click', function(event) {
+  const button = event.target.closest('.remove-favorite');
+  if (!button) return;
+
+  const movieId = button.getAttribute('data-movie-id');
+  const movieTitle = button.closest('.favorite-item').querySelector('h4')?.innerText || 'phim này';
+
+  // ✅ Hỏi xác nhận
+  const confirmed = confirm(`Bạn có chắc chắn muốn xóa ${movieTitle} khỏi danh sách yêu thích không?`);
+  if (!confirmed) return;
+
+  fetch("{% url 'toggle_favorite' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ movie_id: movieId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      button.closest('.col-12').remove();
+      alert("Đã xóa phim khỏi danh sách yêu thích!");
+      const favoriteSection = document.querySelector('.favorite-section .row');
+      if (!favoriteSection.children.length) {
+        favoriteSection.innerHTML = '<p class="text-gray-400 text-center" role="status">Chưa có phim yêu thích nào.</p>';
+      }
+    } else {
+      alert("Xóa phim thất bại: " + data.error);
+    }
+  })
+  .catch(error => {
+    alert("Lỗi kết nối đến server!");
+    console.error(error);
+  });
+});
+
+</script>
+{% endblock %}

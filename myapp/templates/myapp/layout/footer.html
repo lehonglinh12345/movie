@@ -1,0 +1,195 @@
+{% load static %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""/>
+
+<!-- Chân trang -->
+<footer class="bg-gray-900 text-white py-8" role="contentinfo" aria-label="Thông tin chân trang">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+      <!-- Logo và Tên Website -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <a href="{% url 'home' %}" class="flex items-center mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] rounded-lg" aria-label="Trang chủ Movie Streaming">
+          <img src="{% static 'myapp/img/logo.jpg' %}" alt="Logo Movie Streaming" 
+              title="Linh vật của website" class="h-12 md:h-16 w-auto rounded-xl transition-transform duration-300 hover:scale-105 shadow-lg">
+          <h3 class="ml-3 text-lg md:text-xl font-bold text-[var(--primary-color)] tracking-wide">MOVIE STREAMING</h3>
+        </a>
+        <p class="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs md:max-w-none">Xem phim chất lượng cao, mọi lúc, mọi nơi với trải nghiệm mượt mà và thư viện phong phú.</p>
+        <!-- Bản đồ Leaflet -->
+        <div id="map" class="w-full max-w-md mx-auto md:mx-0" style="height: 200px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+        <p class="text-xs text-gray-500 mt-3 text-center font-medium">20 Hẻm liên tổ 12-13-14-15-16-17-18-19-20<br>An Khánh, Ninh Kiều, Cần Thơ</p>
+      </div>
+      <!-- Liên Hệ -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <h5 class="text-lg font-semibold text-white mb-4 uppercase tracking-wide border-b border-[var(--primary-color)] pb-2">Liên Hệ</h5>
+        <ul class="list-unstyled text-gray-400 space-y-3">
+          <li>
+            <a href="mailto:lehonglinhcd2004@gmail.com" 
+              class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Gửi email">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-[var(--primary-color)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l9 6 9-6m-18 8V8a2 2 0 012-2h16a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              </svg>
+              <span class="text-sm">lehonglinhcd2004@gmail.com</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://www.facebook.com/re.hon.rin.2025" target="_blank" rel="noopener noreferrer"
+              class="group flex items-center gap-3 p-2 rounded-lg hover:bg-blue-600/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Trang Facebook">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              <span class="text-sm">Facebook</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/lehonglinh12345" target="_blank" rel="noopener noreferrer"
+              class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Kho mã nguồn GitHub">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-300 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.225.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+              <span class="text-sm">GitHub</span>
+            </a>
+          </li>
+          <li>
+            <a href="zalo://chat?phone=0332796941" 
+              class="group flex items-center gap-3 p-2 rounded-lg hover:bg-green-600/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Nhắn tin Zalo">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="text-sm">Zalo: 0332796941</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Hỗ Trợ -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <h5 class="text-lg font-semibold text-white mb-4 uppercase tracking-wide border-b border-[var(--primary-color)] pb-2">Hỗ Trợ</h5>
+        <ul class="list-unstyled text-gray-400 space-y-3">
+          <li>
+            <a href="#" class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Hỗ trợ quảng cáo">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-[var(--primary-color)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+              <span class="text-sm">Hỗ trợ quảng cáo</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'dieukhoan' %}" class="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]" aria-label="Điều khoản sử dụng">
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-[var(--primary-color)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span class="text-sm">Điều khoản sử dụng</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bản quyền -->
+    <div class="border-t border-gray-800 mt-8 pt-6">
+      <div class="text-center">
+        <p class="text-gray-400 text-sm">&copy; 2025 MOVIE STREAMING - KTPM2211. Tất cả quyền được bảo lưu.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""></script>
+<script>
+  // Vị trí công ty
+  var companyLat = 10.042228;
+  var companyLng = 105.760902;
+  var map = L.map('map').setView([companyLat, companyLng], 16);
+
+  // Các lớp bản đồ cơ bản
+  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  });
+
+  var opentopo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: 'Dữ liệu bản đồ: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Kiểu bản đồ: © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
+  });
+
+  var esriWorld = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Lớp gạch &copy; Esri &mdash; Nguồn: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+  });
+
+  // Lớp mặc định
+  osm.addTo(map);
+
+  // Điều khiển lớp
+  var baseLayers = {
+    "OpenStreetMap": osm,
+    "OpenTopoMap": opentopo,
+    "Esri World Street": esriWorld
+  };
+
+  L.control.layers(baseLayers).addTo(map);
+
+  // Đánh dấu công ty
+  L.marker([companyLat, companyLng]).addTo(map)
+    .bindPopup(
+      '20 Hẻm liên tổ 12-13-14-15-16-17-18-19-20<br>An Khánh, Ninh Kiều, Cần Thơ'
+    )
+    .openPopup();
+
+  // Lấy vị trí hiện tại của người dùng
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        var userLat = position.coords.latitude;
+        var userLng = position.coords.longitude;
+
+        // Tập trung vào vị trí người dùng
+        map.setView([userLat, userLng], 13);
+
+        // Đánh dấu người dùng (tùy chọn)
+        L.marker([userLat, userLng])
+          .addTo(map)
+          .bindPopup('📍 Vị trí của bạn');
+      },
+      function(error) {
+        console.log('Lỗi định vị: ' + error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    console.log('Trình duyệt không hỗ trợ định vị');
+  }
+</script>
+
+<style>
+  footer {
+    background: var(--secondary-color);
+    font-family: 'Montserrat', sans-serif;
+    --primary-color: #facc15;
+    --secondary-color: #1a1a2e;
+  }
+
+  footer a {
+    transition: color 0.3s ease;
+  }
+
+  footer img {
+    box-shadow: var(--shadow);
+  }
+
+  @media (max-width: 768px) {
+    footer .grid {
+      gap: 2rem;
+    }
+    footer h4, footer h5 {
+      font-size: 1.25rem;
+    }
+    footer img {
+      height: 50px;
+    }
+  }
+</style>
