@@ -21,3 +21,4 @@ requests
 
 Pillow
 boto3
+PyJWT
