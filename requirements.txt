@@ -27,7 +27,6 @@ celery
 flower
 django-celery-beat
 django-celery-results
-markdownx
 drf-yasg
 Pygments
 Pandas
