@@ -31,13 +31,5 @@ markdownx
 drf-yasg
 Pygments
 Pandas
-openpyxl
-django-filter
-Faker
-pytest
-pytest-django
-pytest-cov
-factory
-pytest-factoryboy
-coverage
+django-markdownx
 
