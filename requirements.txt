@@ -17,3 +17,7 @@ mysqlclient
 PyMySQL
 dj-database-url
 redis
+requests
+
+Pillow
+boto3
