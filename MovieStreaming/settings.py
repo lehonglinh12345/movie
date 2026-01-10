@@ -127,31 +127,29 @@ LOGGING = {
 
 WSGI_APPLICATION = 'MovieStreaming.wsgi.application'
 
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'movie_streaming',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': '127.0.0.1',  
-#         'PORT': '3306',
-#     }
-# }
-
+import os
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+if os.environ.get('DATABASE_URL'):
+    # Production (Render)
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Local (XAMPP + MySQL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'movie_streaming',
+            'USER': 'root',
+            'PASSWORD': '',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
